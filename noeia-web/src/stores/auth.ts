@@ -41,6 +41,31 @@ export const useAuthStore = defineStore('auth', () => {
         router.push('/app')
     }
 
+    function loginAsClient() {
+        user.value = {
+            id: 'test-client',
+            aud: 'authenticated',
+            role: 'authenticated',
+            email: 'client@test.com',
+            email_confirmed_at: new Date().toISOString(),
+            phone: '',
+            confirmation_sent_at: '',
+            confirmed_at: '',
+            last_sign_in_at: '',
+            app_metadata: { provider: 'email', providers: ['email'] },
+            user_metadata: {
+                full_name: 'Sarah Connor',
+                avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah'
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        } as User
+        // Ideally redirect to a client portal, but for now app is fine or maybe we need a client view?
+        // For this task, let's assume they go to the same app but maybe see different things?
+        // Or just redirect to /app for now.
+        router.push('/app')
+    }
+
     async function logout() {
         await supabase.auth.signOut()
         user.value = null
@@ -74,6 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
         isAuthenticated,
         login,
         bypassLogin,
+        loginAsClient,
         logout,
         checkAuth,
     }

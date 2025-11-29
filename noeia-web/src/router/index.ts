@@ -35,6 +35,12 @@ const router = createRouter({
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
+            path: '/app/ai',
+            name: 'ai',
+            component: () => import('@/pages/app/AI.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
             path: '/app/calendar',
             name: 'calendar',
             component: () => import('@/pages/app/Calendar.vue'),

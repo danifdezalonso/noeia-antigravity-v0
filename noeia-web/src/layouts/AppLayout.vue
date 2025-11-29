@@ -14,7 +14,8 @@ import {
   HelpCircle,
   ChevronRight,
   Plus,
-  Search
+  Search,
+  Sparkles
 } from 'lucide-vue-next'
 
 import OrgSelector from '@/components/OrgSelector.vue'
@@ -41,6 +42,7 @@ const navigation = [
   { name: 'Sessions', href: '/app/sessions', icon: Clock },
   { name: 'Patients', href: '/app/clients', icon: Users },
   { name: 'Billing', href: '/app/billing', icon: CreditCard },
+  { name: 'IA', href: '/app/ai', icon: Sparkles },
   { name: 'Settings', href: '/app/settings', icon: Settings },
 ]
 

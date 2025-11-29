@@ -36,8 +36,9 @@ const upcomingSessions = computed(() => {
 })
 
 const pendingSessions = computed(() => {
+  const now = new Date()
   return enrichedSessions.value
-    .filter(s => s.status === 'Completed' && !s.invoiceId)
+    .filter(s => new Date(s.end) < now && s.status !== 'Completed' && s.status !== 'Cancelled')
     .sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime()) // Most recent first
     .map(s => ({
       id: s.id,
@@ -156,7 +157,7 @@ async function handleCompleteSession(data: any) {
               </div>
               <button 
                 @click="openCompleteModal(session)"
-                class="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                class="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors"
               >
                 Finalize
               </button>
