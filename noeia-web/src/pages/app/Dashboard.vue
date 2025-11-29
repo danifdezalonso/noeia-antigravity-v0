@@ -35,6 +35,16 @@ const upcomingSessions = computed(() => {
     }))
 })
 
+const nextSession = computed(() => {
+  const now = new Date()
+  // Find the first session that hasn't ended yet
+  const upcoming = enrichedSessions.value
+    .filter(s => new Date(s.end) > now && s.status !== 'Cancelled')
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+  
+  return upcoming.length > 0 ? upcoming[0] : null
+})
+
 const pendingSessions = computed(() => {
   const now = new Date()
   return enrichedSessions.value
@@ -132,8 +142,45 @@ async function handleCompleteSession(data: any) {
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Pending Sessions -->
-      <div class="lg:col-span-2">
+      <!-- Main Column -->
+      <div class="lg:col-span-2 space-y-8">
+        
+        <!-- Upcoming Session -->
+        <Card title="Upcoming Session" description="Your next scheduled appointment">
+          <div v-if="!nextSession" class="text-center py-8 text-slate-500 text-sm">
+            No upcoming sessions scheduled for today.
+          </div>
+          <div v-else class="flex items-start gap-4 p-4 bg-primary-50/50 rounded-xl border border-primary-100">
+             <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-lg shrink-0">
+                {{ nextSession.clientName.split(' ').map((n: string) => n[0]).join('') }}
+             </div>
+             <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <h3 class="text-lg font-semibold text-slate-900">{{ nextSession.clientName }}</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
+                        {{ nextSession.type }}
+                    </span>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-slate-600 mb-3">
+                    <div class="flex items-center gap-1.5">
+                        <Calendar class="w-4 h-4 text-slate-400" />
+                        {{ new Date(nextSession.start).toLocaleDateString() }}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <Clock class="w-4 h-4 text-slate-400" />
+                        {{ new Date(nextSession.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }} - 
+                        {{ new Date(nextSession.end).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <Button size="sm" class="w-full sm:w-auto">Start Session</Button>
+                    <Button size="sm" variant="outline" class="w-full sm:w-auto">View Details</Button>
+                </div>
+             </div>
+          </div>
+        </Card>
+
+        <!-- Sessions to Finalize -->
         <Card title="Sessions to Finalize" :description="`${pendingSessions.length} pending`">
           <div v-if="pendingSessions.length === 0" class="text-center py-8 text-slate-500 text-sm">
             All caught up! No pending sessions.
