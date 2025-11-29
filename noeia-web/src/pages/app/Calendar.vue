@@ -125,10 +125,29 @@ function getEventsForTimeSlot(date: Date, hour: number) {
   })
 }
 
-function getDurationInMinutes(event: any) {
+function getEventsForDay(date: Date) {
+  const dateStr = date.toDateString()
+  return enrichedSessions.value.filter(e => new Date(e.start).toDateString() === dateStr)
+}
+
+function getEventStyle(event: any) {
   const start = new Date(event.start)
   const end = new Date(event.end)
-  return (end.getTime() - start.getTime()) / (1000 * 60)
+  const startHour = 8 // View starts at 8:00
+  
+  // Calculate top position in pixels (40px per hour)
+  const startMinutesFrom8 = (start.getHours() - startHour) * 60 + start.getMinutes()
+  const topPixels = (startMinutesFrom8 / 60) * 40
+  
+  // Calculate height in pixels
+  const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60)
+  const heightPixels = (durationMinutes / 60) * 40
+
+  return {
+    top: `${topPixels}px`,
+    height: `${heightPixels}px`,
+    minHeight: '24px'
+  }
 }
 
 function formatTime(dateStr: string) {
@@ -443,7 +462,7 @@ function openFullModal() {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-2rem)] flex flex-col space-y-4">
+  <div class="h-[calc(100vh-2rem)] flex flex-col space-y-4 pb-4">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
@@ -515,7 +534,7 @@ function openFullModal() {
     </div>
 
     <!-- Calendar Grid -->
-    <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
+    <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-0">
       
       <!-- Month View -->
       <div v-if="currentView === 'Month'" class="flex-1 flex flex-col">
@@ -559,8 +578,8 @@ function openFullModal() {
       </div>
 
       <!-- Week View -->
-      <div v-else-if="currentView === 'Week'" class="flex-1 flex flex-col overflow-y-auto">
-        <div class="grid grid-cols-8 border-b border-slate-200 sticky top-0 bg-white z-10">
+      <div v-else-if="currentView === 'Week'" class="flex-1 flex flex-col min-h-0">
+        <div class="grid grid-cols-8 border-b border-slate-200 bg-white z-10 shrink-0">
           <div class="w-16 border-r border-slate-200"></div> <!-- Time column header -->
           <div v-for="day in weekDays" :key="day.toISOString()" class="py-2 text-center border-r border-slate-200">
             <div class="text-xs font-medium text-slate-500 uppercase">{{ day.toLocaleDateString('en-US', { weekday: 'short' }) }}</div>
@@ -572,80 +591,74 @@ function openFullModal() {
             </div>
           </div>
         </div>
-        <div class="flex-1 grid grid-cols-8">
-          <!-- Time Column -->
-          <div class="w-16 border-r border-slate-200 bg-slate-50">
-            <div v-for="hour in hours" :key="hour" class="h-20 border-b border-slate-200 text-xs text-slate-500 text-right pr-2 pt-2">
-              {{ hour }}:00
+        
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+          <div class="grid grid-cols-8 min-h-full relative">
+            <!-- Time Column -->
+            <div class="w-16 border-r border-slate-200 bg-slate-50">
+              <div v-for="hour in hours" :key="hour" class="h-10 border-b border-slate-200 text-xs text-slate-500 text-right pr-2 pt-2 relative">
+                <span class="-mt-2.5 block">{{ hour }}:00</span>
+              </div>
             </div>
-          </div>
-          <!-- Days Columns -->
-          <div v-for="day in weekDays" :key="day.toISOString()" class="border-r border-slate-200 relative">
-            <div 
-              v-for="hour in hours" 
-              :key="hour" 
-              class="h-20 border-b border-slate-100 relative group"
-              :data-time-slot="true"
-              :data-date="day.toISOString()"
-              :data-hour="hour"
-              @mousedown="startCreate($event, day, hour)"
-            >
-              <!-- Grid lines -->
-              <div 
-                class="absolute inset-0 transition-colors cursor-pointer"
-                :class="{
-                  'bg-slate-50/50': hour < store.availability.start || hour >= store.availability.end,
-                  'hover:bg-slate-50': hour >= store.availability.start && hour < store.availability.end
-                }"
-              ></div>
+            
+            <!-- Days Columns -->
+            <div v-for="day in weekDays" :key="day.toISOString()" class="border-r border-slate-200 relative group">
               
-              <!-- Draft Event (Drawing) -->
-              <div 
-                v-if="draftEvent && 
-                      day.toDateString() === draftEvent.start.toDateString() && 
-                      hour >= draftEvent.start.getHours() && 
-                      hour <= draftEvent.end.getHours()"
-                class="absolute inset-x-1 z-20 bg-primary-500/20 border-2 border-primary-500 rounded pointer-events-none flex flex-col justify-center"
-                :style="{
-                  top: hour === draftEvent.start.getHours() ? (draftEvent.start.getMinutes() / 60 * 100) + '%' : '0',
-                  bottom: hour === draftEvent.end.getHours() ? (100 - (draftEvent.end.getMinutes() / 60 * 100)) + '%' : '0',
-                  display: (hour === draftEvent.end.getHours() && draftEvent.end.getMinutes() === 0) ? 'none' : 'block',
-                  minHeight: '24px'
-                }"
-              >
-                <div v-if="hour === draftEvent.start.getHours()" class="text-xs font-bold text-primary-700 px-1 truncate">
-                  {{ formatTime(draftEvent.start.toISOString()) }} - {{ formatTime(draftEvent.end.toISOString()) }}
+              <!-- Grid Background & Click Targets -->
+              <div class="absolute inset-0 flex flex-col z-0">
+                <div 
+                  v-for="hour in hours" 
+                  :key="hour" 
+                  class="h-10 border-b border-slate-100 relative transition-colors"
+                  :class="{
+                    'bg-slate-50/30': hour < store.availability.start || hour >= store.availability.end,
+                    'hover:bg-slate-50': hour >= store.availability.start && hour < store.availability.end
+                  }"
+                  :data-time-slot="true"
+                  :data-date="day.toISOString()"
+                  :data-hour="hour"
+                  @mousedown="startCreate($event, day, hour)"
+                ></div>
+              </div>
+
+              <!-- Events Overlay -->
+              <div class="absolute inset-0 z-10 pointer-events-none mr-2">
+                <!-- Draft Event -->
+                <div 
+                  v-if="draftEvent && day.toDateString() === draftEvent.start.toDateString()"
+                  class="absolute inset-x-1 bg-primary-500/20 border-2 border-primary-500 rounded pointer-events-none flex flex-col justify-center z-20"
+                  :style="getEventStyle(draftEvent)"
+                >
+                  <div class="text-xs font-bold text-primary-700 px-1 truncate">
+                    {{ formatTime(draftEvent.start.toISOString()) }} - {{ formatTime(draftEvent.end.toISOString()) }}
+                  </div>
+                </div>
+
+                <!-- Actual Events -->
+                <div 
+                  v-for="event in getEventsForDay(day)" 
+                  :key="event.id"
+                  class="event-card absolute inset-x-1 rounded px-2 py-1 text-xs border overflow-hidden cursor-pointer hover:brightness-95 transition-all select-none pointer-events-auto shadow-sm"
+                  :class="{
+                    'bg-blue-50 text-blue-700 border-blue-100': !event.color && event.status === 'Confirmed',
+                    'bg-amber-50 text-amber-700 border-amber-100': !event.color && event.status === 'Pending',
+                    'bg-green-50 text-green-700 border-green-100': !event.color && event.status === 'Completed',
+                    'bg-red-50 text-red-700 border-red-100': !event.color && event.status === 'Cancelled',
+                    'bg-blue-100 text-blue-800 border-blue-200': event.color === 'blue',
+                    'bg-green-100 text-green-800 border-green-200': event.color === 'green',
+                    'bg-red-100 text-red-800 border-red-200': event.color === 'red',
+                    'bg-purple-100 text-purple-800 border-purple-200': event.color === 'purple',
+                  }"
+                  :style="getEventStyle(event)"
+                  @mousedown.stop="startDrag($event, event)"
+                  @contextmenu.prevent="handleContextMenu($event, event)"
+                  @click.stop="handleEventClick($event, event)"
+                >
+                  <div class="font-semibold truncate">{{ event.title }}</div>
+                  <div class="truncate opacity-75">{{ event.clientName }}</div>
                 </div>
               </div>
 
-              <!-- Events in this slot -->
-              <div 
-                v-for="event in getEventsForTimeSlot(day, hour)" 
-                :key="event.id"
-                class="event-card absolute inset-x-1 rounded px-2 py-1 text-xs border overflow-hidden z-10 cursor-pointer hover:brightness-95 transition-all select-none"
-                :class="{
-                  'bg-blue-50 text-blue-700 border-blue-100': !event.color && event.status === 'Confirmed',
-                  'bg-amber-50 text-amber-700 border-amber-100': !event.color && event.status === 'Pending',
-                  'bg-green-50 text-green-700 border-green-100': !event.color && event.status === 'Completed',
-                  'bg-red-50 text-red-700 border-red-100': !event.color && event.status === 'Cancelled',
-                  // Custom colors
-                  'bg-blue-100 text-blue-800 border-blue-200': event.color === 'blue',
-                  'bg-green-100 text-green-800 border-green-200': event.color === 'green',
-                  'bg-red-100 text-red-800 border-red-200': event.color === 'red',
-                  'bg-purple-100 text-purple-800 border-purple-200': event.color === 'purple',
-                }"
-                :style="{
-                  top: (new Date(event.start).getMinutes() / 60 * 100) + '%',
-                  height: (getDurationInMinutes(event) / 60 * 100) + '%',
-                  minHeight: '24px'
-                }"
-                @mousedown.stop="startDrag($event, event)"
-                @contextmenu.prevent="handleContextMenu($event, event)"
-                @click.stop="handleEventClick($event, event)"
-              >
-                <div class="font-semibold truncate">{{ event.title }}</div>
-                <div class="truncate opacity-75">{{ event.clientName }}</div>
-              </div>
             </div>
           </div>
         </div>
