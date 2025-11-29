@@ -7,7 +7,19 @@ const router = createRouter({
         {
             path: '/',
             name: 'home',
-            component: () => import('@/pages/public/Home.vue'),
+            component: () => import('@/pages/public/Landing.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/pricing',
+            name: 'pricing',
+            component: () => import('@/pages/public/Pricing.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/about',
+            name: 'about',
+            component: () => import('@/pages/public/About.vue'),
             meta: { layout: 'public' },
         },
         {
