@@ -29,12 +29,18 @@ export interface Session {
     professionalId: string
     start: string // ISO string
     end: string // ISO string
-    status: 'Confirmed' | 'Pending' | 'Cancelled' | 'Completed'
+    status: 'Confirmed' | 'Pending' | 'Cancelled' | 'Completed' | 'Scheduled' | 'Waiting confirmation'
     fee: number
     invoiceId?: string
     notes?: string
     color?: string // New field for custom colors
     type?: string // e.g. 'Session', 'Consultation'
+    sessionType?: 'Online' | 'Offline'
+    location?: string
+    sessionFormat?: 'Individual' | 'Group' | 'Couple' | 'Family'
+    paymentMethod?: 'Cash' | 'Bizum' | 'Card' | 'ITPV' | 'Pending'
+    paymentStatus?: 'Pending' | 'Awaiting payment' | 'Not required' | 'Paid' | 'Failed' | 'Refunded' | 'Disputed'
+    isPaid?: boolean
 }
 
 export interface Invoice {
@@ -57,6 +63,12 @@ export const useAppStore = defineStore('app', () => {
     const clients = ref<Client[]>([])
     const sessions = ref<Session[]>([])
     const invoices = ref<Invoice[]>([])
+
+    // Availability State (Start/End hours)
+    const availability = ref({
+        start: 9, // 9 AM
+        end: 17   // 5 PM
+    })
 
     // Mock Org ID for now (should come from auth/context)
     const ORGANIZATION_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
@@ -171,6 +183,12 @@ export const useAppStore = defineStore('app', () => {
                 invoiceId: s.invoice_id,
                 notes: s.notes,
                 color: s.color, // Assuming DB might have it, or we handle it locally
+                sessionType: s.session_type,
+                location: s.location,
+                sessionFormat: s.session_format,
+                paymentMethod: s.payment_method,
+                paymentStatus: s.payment_status,
+                isPaid: s.is_paid,
                 type: s.type || 'Session'
             }))
         }
@@ -246,8 +264,14 @@ export const useAppStore = defineStore('app', () => {
             end_time: session.end,
             status: session.status,
             fee: session.fee,
-            notes: session.notes
+            notes: session.notes,
             // type: session.type // Column does not exist in DB yet
+            session_type: session.sessionType,
+            location: session.location,
+            session_format: session.sessionFormat,
+            payment_method: session.paymentMethod,
+            payment_status: session.paymentStatus,
+            is_paid: session.isPaid
         }
         console.log('Supabase insert payload:', payload)
 
@@ -273,7 +297,13 @@ export const useAppStore = defineStore('app', () => {
                 notes: data.notes,
                 invoiceId: data.invoice_id,
                 type: session.type || 'Session', // Use local value as DB doesn't return it
-                color: session.color // Persist color locally at least
+                color: session.color, // Persist color locally at least
+                sessionType: session.sessionType,
+                location: session.location,
+                sessionFormat: session.sessionFormat,
+                paymentMethod: session.paymentMethod,
+                paymentStatus: session.paymentStatus,
+                isPaid: session.isPaid
             }
             sessions.value.push(newSession)
             return newSession.id
@@ -447,6 +477,7 @@ export const useAppStore = defineStore('app', () => {
         professionals,
         sessions,
         invoices,
+        availability,
         enrichedSessions,
         enrichedInvoices,
         getClientById,

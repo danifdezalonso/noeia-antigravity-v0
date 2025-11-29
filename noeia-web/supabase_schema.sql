@@ -69,6 +69,12 @@
     notes text,
     type text default 'Session',
     color text,
+    session_type text default 'Online',
+    location text,
+    session_format text default 'Individual',
+    payment_method text default 'Pending',
+    payment_status text default 'Pending',
+    is_paid boolean default false,
     invoice_id uuid references public.invoices(id),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
   );

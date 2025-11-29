@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ChevronLeft, ChevronRight, Plus, Clock, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Plus, Clock, Trash2, Settings } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import CreateEventModal from '@/components/CreateEventModal.vue'
 import QuickEventPopup from '@/components/QuickEventPopup.vue'
@@ -14,6 +14,7 @@ const currentDate = ref(new Date())
 const currentView = ref('Week') // Month, Week, Day, List
 const isModalOpen = ref(false)
 const selectedDate = ref<Date | null>(null)
+const showAvailabilitySettings = ref(false)
 
 // --- Quick Create State ---
 const isCreating = ref(false)
@@ -478,11 +479,43 @@ function openFullModal() {
           <Plus class="w-4 h-4 mr-2" />
           Add Event
         </Button>
+        
+        <!-- Availability Settings -->
+        <div class="relative">
+          <button 
+            @click="showAvailabilitySettings = !showAvailabilitySettings"
+            class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+            title="Configure Availability"
+          >
+            <Settings class="w-5 h-5" />
+          </button>
+          
+          <div 
+            v-if="showAvailabilitySettings"
+            class="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-100"
+          >
+            <h3 class="font-semibold text-slate-900 mb-3">Business Hours</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs font-medium text-slate-500 block mb-1">Start Time</label>
+                <select v-model="store.availability.start" class="w-full text-sm border-slate-200 rounded-lg">
+                  <option v-for="h in 24" :key="h-1" :value="h-1">{{ h-1 }}:00</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-medium text-slate-500 block mb-1">End Time</label>
+                <select v-model="store.availability.end" class="w-full text-sm border-slate-200 rounded-lg">
+                  <option v-for="h in 24" :key="h-1" :value="h-1">{{ h-1 }}:00</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+    <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
       
       <!-- Month View -->
       <div v-if="currentView === 'Month'" class="flex-1 flex flex-col">
@@ -558,7 +591,13 @@ function openFullModal() {
               @mousedown="startCreate($event, day, hour)"
             >
               <!-- Grid lines -->
-              <div class="absolute inset-0 hover:bg-slate-50 transition-colors cursor-pointer"></div>
+              <div 
+                class="absolute inset-0 transition-colors cursor-pointer"
+                :class="{
+                  'bg-slate-50/50': hour < store.availability.start || hour >= store.availability.end,
+                  'hover:bg-slate-50': hour >= store.availability.start && hour < store.availability.end
+                }"
+              ></div>
               
               <!-- Draft Event (Drawing) -->
               <div 
