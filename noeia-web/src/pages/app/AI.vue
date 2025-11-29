@@ -8,8 +8,6 @@ import {
   Upload, 
   Clipboard,
   FileText,
-  X,
-  CheckCircle
 } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import { useAppStore } from '@/stores/app'
@@ -95,11 +93,20 @@ function analyzeSession() {
   }, 1500)
 }
 
+import SessionNotesModal from '@/components/ai/SessionNotesModal.vue'
+
+// ... (existing code)
+
+function handleSaveNotes(data: any) {
+  notes.value = data.notes
+  isNotesModalOpen.value = false
+  // Here we could also store the config if needed
+  console.log('AI Config:', data.config)
+}
+
 function triggerFileInput() {
   fileInput.value?.click()
 }
-
-
 </script>
 
 <template>
@@ -281,32 +288,12 @@ function triggerFileInput() {
             </div>
 
             <!-- Notes Modal -->
-            <div v-if="isNotesModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-                    <div class="flex items-center justify-between p-6 border-b border-slate-100">
-                        <h3 class="text-lg font-semibold text-slate-900">Session Notes</h3>
-                        <button @click="isNotesModalOpen = false" class="text-slate-400 hover:text-slate-600 transition-colors">
-                            <X class="w-5 h-5" />
-                        </button>
-                    </div>
-                    
-                    <div class="flex-1 p-6 overflow-hidden flex flex-col">
-                        <textarea 
-                            v-model="notes"
-                            class="flex-1 w-full p-4 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none font-mono leading-relaxed bg-slate-50"
-                            placeholder="Paste your transcript or type session notes here..."
-                        ></textarea>
-                    </div>
-
-                    <div class="p-6 border-t border-slate-100 flex justify-end gap-3">
-                        <Button variant="outline" @click="isNotesModalOpen = false">Cancel</Button>
-                        <Button @click="isNotesModalOpen = false">
-                            <CheckCircle class="w-4 h-4 mr-2" />
-                            Save Notes
-                        </Button>
-                    </div>
-                </div>
-            </div>
+            <SessionNotesModal 
+              :is-open="isNotesModalOpen"
+              :initial-notes="notes"
+              @close="isNotesModalOpen = false"
+              @save="handleSaveNotes"
+            />
 
           </div>
         </div>
