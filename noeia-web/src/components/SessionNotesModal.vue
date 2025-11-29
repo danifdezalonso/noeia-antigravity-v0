@@ -13,6 +13,15 @@ const emit = defineEmits(['close', 'save'])
 const notes = ref('')
 const isAnalyzing = ref(false)
 const aiResult = ref<any>(null)
+const uploadedFile = ref<any>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    uploadedFile.value = target.files[0]
+  }
+}
 
 watch(() => props.session, (newSession) => {
   if (newSession) {
@@ -84,8 +93,18 @@ function save() {
             <div class="flex items-center justify-between mb-2">
               <label class="block text-sm font-medium text-slate-700">Notes & Recording</label>
               <div class="flex gap-2">
-                <button class="text-xs flex items-center gap-1 text-slate-500 hover:text-primary-600 transition-colors">
-                  <Upload class="w-3 h-3" /> Upload Recording
+                <input 
+                  type="file" 
+                  ref="fileInput" 
+                  class="hidden" 
+                  accept="audio/*"
+                  @change="handleFileUpload"
+                >
+                <button 
+                  @click="fileInput?.click()"
+                  class="text-xs flex items-center gap-1 text-slate-500 hover:text-primary-600 transition-colors"
+                >
+                  <Upload class="w-3 h-3" /> {{ uploadedFile ? uploadedFile.name : 'Upload Recording' }}
                 </button>
                 <button class="text-xs flex items-center gap-1 text-slate-500 hover:text-primary-600 transition-colors">
                   <Mic class="w-3 h-3" /> Record

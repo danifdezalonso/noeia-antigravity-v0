@@ -33,6 +33,8 @@ export interface Session {
     fee: number
     invoiceId?: string
     notes?: string
+    color?: string // New field for custom colors
+    type?: string // e.g. 'Session', 'Consultation'
 }
 
 export interface Invoice {
@@ -44,6 +46,7 @@ export interface Invoice {
     items: Array<{ description: string; amount: number }>
     status: 'Paid' | 'Pending' | 'Overdue' | 'Draft'
     total: number
+    displayId?: string // Computed frontend ID
 }
 
 // --- Store ---
@@ -81,12 +84,17 @@ export const useAppStore = defineStore('app', () => {
         return invoices.value.map(invoice => {
             const client = getClientById(invoice.clientId)
             const professional = getProfessionalById(invoice.professionalId)
+            const clientNameSlug = client?.name.replace(/\s+/g, '') || 'Unknown'
+            const displayId = `INV_${clientNameSlug}_${invoice.date}`
+
             return {
                 ...invoice,
                 clientName: client?.name || 'Unknown',
-                professionalName: professional?.name || 'Unknown'
+                professionalName: professional?.name || 'Unknown',
+                displayId
             }
         })
+
     })
 
     // --- Actions ---
@@ -161,7 +169,9 @@ export const useAppStore = defineStore('app', () => {
                 status: s.status as any,
                 fee: s.fee,
                 invoiceId: s.invoice_id,
-                notes: s.notes
+                notes: s.notes,
+                color: s.color, // Assuming DB might have it, or we handle it locally
+                type: s.type || 'Session'
             }))
         }
     }
@@ -226,19 +236,24 @@ export const useAppStore = defineStore('app', () => {
     }
 
     async function addSession(session: Omit<Session, 'id'>) {
+        console.log('addSession called with:', session)
+        const payload = {
+            organization_id: ORGANIZATION_ID,
+            title: session.title,
+            client_id: session.clientId || null,
+            professional_id: session.professionalId || null, // Ensure null if undefined
+            start_time: session.start,
+            end_time: session.end,
+            status: session.status,
+            fee: session.fee,
+            notes: session.notes
+            // type: session.type // Column does not exist in DB yet
+        }
+        console.log('Supabase insert payload:', payload)
+
         const { data, error } = await supabase
             .from('sessions')
-            .insert({
-                organization_id: ORGANIZATION_ID,
-                title: session.title,
-                client_id: session.clientId,
-                professional_id: session.professionalId,
-                start_time: session.start,
-                end_time: session.end,
-                status: session.status,
-                fee: session.fee,
-                notes: session.notes
-            })
+            .insert(payload)
             .select()
             .single()
 
@@ -256,7 +271,9 @@ export const useAppStore = defineStore('app', () => {
                 status: data.status as any,
                 fee: data.fee,
                 notes: data.notes,
-                invoiceId: data.invoice_id
+                invoiceId: data.invoice_id,
+                type: session.type || 'Session', // Use local value as DB doesn't return it
+                color: session.color // Persist color locally at least
             }
             sessions.value.push(newSession)
             return newSession.id
@@ -347,10 +364,13 @@ export const useAppStore = defineStore('app', () => {
         if (!session) return
 
         // 1. Create Invoice
+        // Generate custom ID for display (computed in getter), but we use UUID for DB.
+        const dateStr = new Date().toISOString().split('T')[0] || ''
+
         const invoiceId = await createInvoice({
             clientId: session.clientId,
             professionalId: session.professionalId,
-            date: new Date().toISOString().split('T')[0] || '',
+            date: dateStr,
             dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] || '',
             items: [{ description: session.title, amount: finalFee }],
             status: 'Draft',
@@ -400,6 +420,28 @@ export const useAppStore = defineStore('app', () => {
         }
     }
 
+    async function deleteSession(sessionId: string) {
+        const { error } = await supabase
+            .from('sessions')
+            .delete()
+            .eq('id', sessionId)
+
+        if (error) {
+            console.error('Error deleting session:', error)
+            throw error
+        } else {
+            sessions.value = sessions.value.filter(s => s.id !== sessionId)
+        }
+    }
+
+    async function updateSessionColor(sessionId: string, color: string) {
+        // Optimistic update
+        const session = sessions.value.find(s => s.id === sessionId)
+        if (session) {
+            session.color = color
+        }
+    }
+
     return {
         clients,
         professionals,
@@ -419,6 +461,8 @@ export const useAppStore = defineStore('app', () => {
         createInvoice,
         updateInvoice,
         completeSession,
-        updateSessionNotes
+        updateSessionNotes,
+        deleteSession,
+        updateSessionColor
     }
 })

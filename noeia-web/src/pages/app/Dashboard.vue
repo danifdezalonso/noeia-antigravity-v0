@@ -1,21 +1,56 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import StatCard from '@/components/ui/StatCard.vue'
+import { ref, computed } from 'vue'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
-import { Users, Calendar, TrendingUp, MoreVertical, Plus } from 'lucide-vue-next'
+import { Users, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Clock } from 'lucide-vue-next'
+import CompleteSessionModal from '@/components/CompleteSessionModal.vue'
 
-const stats = [
-  { title: 'Total Clients', value: '24', trend: '+12%', trendUp: true, icon: Users },
-  { title: 'Upcoming Sessions', value: '8', trend: 'This Week', trendUp: true, icon: Calendar },
-  { title: 'Monthly Revenue', value: '$3,240', trend: '+8%', trendUp: true, icon: TrendingUp },
-]
+import { useAppStore } from '@/stores/app'
+import { storeToRefs } from 'pinia'
 
-const upcomingSessions = [
-  { id: 1, client: 'Sarah Johnson', time: '10:00 AM', type: 'Therapy Session', status: 'Confirmed' },
-  { id: 2, client: 'Michael Chen', time: '2:00 PM', type: 'Initial Consultation', status: 'Pending' },
-  { id: 3, client: 'Emma Davis', time: '4:30 PM', type: 'Follow-up', status: 'Confirmed' },
-]
+const store = useAppStore()
+const { enrichedSessions, clients, enrichedInvoices } = storeToRefs(store)
+
+const isCompleteModalOpen = ref(false)
+const selectedSession = ref<any>(null)
+
+const stats = computed(() => [
+  { title: 'Total Clients', value: clients.value.length.toString(), trend: '+12%', trendUp: true, icon: Users },
+  { title: 'Upcoming Sessions', value: upcomingSessions.value.length.toString(), trend: 'Today', trendUp: true, icon: Calendar },
+  { title: 'Monthly Revenue', value: `€${enrichedInvoices.value.reduce((acc, inv) => acc + inv.total, 0)}`, trend: '+8%', trendUp: true, icon: TrendingUp },
+])
+
+const upcomingSessions = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return enrichedSessions.value
+    .filter(s => new Date(s.start).toDateString() === today.toDateString() && s.status !== 'Completed')
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    .map(s => ({
+      id: s.id,
+      clientName: s.clientName,
+      start: s.start,
+      type: s.type,
+      status: s.status
+    }))
+})
+
+const pendingSessions = computed(() => {
+  return enrichedSessions.value
+    .filter(s => s.status === 'Completed' && !s.invoiceId)
+    .sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime()) // Most recent first
+    .map(s => ({
+      id: s.id,
+      clientName: s.clientName,
+      start: s.start,
+      type: s.type,
+      status: s.status,
+      clientId: s.clientId,
+      professionalId: s.professionalId,
+      fee: s.fee,
+      title: s.title
+    }))
+})
 
 const notes = ref([
   { id: 1, text: 'Remember to send intake forms to Michael', date: 'Today' },
@@ -32,6 +67,32 @@ function addNote() {
     date: 'Just now'
   })
   newNote.value = ''
+}
+
+function openCompleteModal(session: any) {
+  selectedSession.value = session
+  isCompleteModalOpen.value = true
+}
+
+async function handleCompleteSession(data: any) {
+  if (selectedSession.value) {
+    await store.completeSession(selectedSession.value.id, data.notes, data.fee)
+    // Handle next session booking if requested (will implement in store or here)
+    if (data.bookNext && data.nextDate) {
+       await store.addSession({
+        title: selectedSession.value.title,
+        clientId: selectedSession.value.clientId,
+        professionalId: selectedSession.value.professionalId,
+        start: data.nextDate.toISOString(),
+        end: new Date(data.nextDate.getTime() + 60 * 60 * 1000).toISOString(), // Default 1h
+        status: 'Confirmed',
+        fee: selectedSession.value.fee,
+        type: 'Session'
+      } as any)
+    }
+    isCompleteModalOpen.value = false
+    selectedSession.value = null
+  }
 }
 </script>
 
@@ -51,49 +112,56 @@ function addNote() {
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <StatCard
-        v-for="stat in stats"
-        :key="stat.title"
-        v-bind="stat"
-      />
+      <div v-for="stat in stats" :key="stat.title" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div class="p-2 bg-slate-50 rounded-lg">
+            <component :is="stat.icon" class="w-5 h-5 text-slate-600" />
+          </div>
+          <span 
+            class="flex items-center text-xs font-medium px-2 py-1 rounded-full"
+            :class="stat.trendUp ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'"
+          >
+            <component :is="stat.trendUp ? ArrowUpRight : ArrowDownRight" class="w-3 h-3 mr-1" />
+            {{ stat.trend }}
+          </span>
+        </div>
+        <h3 class="text-slate-500 text-sm font-medium">{{ stat.title }}</h3>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ stat.value }}</p>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Upcoming Sessions -->
+      <!-- Pending Sessions -->
       <div class="lg:col-span-2">
-        <Card title="Upcoming Sessions" description="Your schedule for today">
-          <div class="space-y-4">
-            <div 
-              v-for="session in upcomingSessions" 
-              :key="session.id"
-              class="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100 hover:border-primary-200 transition-colors group"
-            >
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-white border border-slate-200 flex flex-col items-center justify-center text-slate-600">
-                  <span class="text-xs font-medium uppercase">{{ session.time.split(' ')[1] }}</span>
-                  <span class="text-lg font-bold">{{ session.time.split(':')[0] }}</span>
+        <Card title="Sessions to Finalize" :description="`${pendingSessions.length} pending`">
+          <div v-if="pendingSessions.length === 0" class="text-center py-8 text-slate-500 text-sm">
+            All caught up! No pending sessions.
+          </div>
+          <div v-else class="space-y-4">
+            <div v-for="session in pendingSessions" :key="session.id" class="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-primary-200 hover:bg-primary-50/30 transition-all group">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xs">
+                  {{ session.clientName.split(' ').map((n: string) => n[0]).join('') }}
                 </div>
                 <div>
-                  <h4 class="font-semibold text-slate-900">{{ session.client }}</h4>
-                  <p class="text-sm text-slate-500">{{ session.type }}</p>
+                  <h4 class="text-sm font-medium text-slate-900">{{ session.clientName }}</h4>
+                  <div class="flex items-center text-xs text-slate-500 mt-0.5">
+                    <Calendar class="w-3 h-3 mr-1" />
+                    {{ new Date(session.start).toLocaleDateString() }}
+                    <span class="mx-1">•</span>
+                    <Clock class="w-3 h-3 mr-1" />
+                    {{ new Date(session.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+                  </div>
                 </div>
               </div>
-              <div class="flex items-center gap-3">
-                <span 
-                  class="px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  :class="session.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'"
-                >
-                  {{ session.status }}
-                </span>
-                <button class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-white transition-colors">
-                  <MoreVertical class="w-4 h-4" />
-                </button>
-              </div>
+              <button 
+                @click="openCompleteModal(session)"
+                class="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+              >
+                Finalize
+              </button>
             </div>
           </div>
-          <template #footer>
-            <Button variant="ghost" class="w-full text-sm">View Full Calendar</Button>
-          </template>
         </Card>
       </div>
 
@@ -126,5 +194,12 @@ function addNote() {
         </Card>
       </div>
     </div>
+
+    <CompleteSessionModal
+      :is-open="isCompleteModalOpen"
+      :session="selectedSession"
+      @close="isCompleteModalOpen = false"
+      @complete="handleCompleteSession"
+    />
   </div>
 </template>

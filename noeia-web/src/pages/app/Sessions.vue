@@ -43,12 +43,15 @@ function handleCompleteSession(data: any) {
 }
 
 function handleSaveSession(eventData: any) {
+  const startDate = new Date(`${eventData.date}T${eventData.time}`)
+  const endDate = new Date(startDate.getTime() + (parseInt(eventData.duration) || 50) * 60000)
+
   store.addSession({
     title: eventData.title,
     clientId: eventData.clientId,
     professionalId: eventData.professionalId,
-    start: `${eventData.date}T${eventData.time}`,
-    end: `${eventData.date}T${eventData.time}`, // Should calc duration
+    start: startDate.toISOString(),
+    end: endDate.toISOString(),
     status: 'Confirmed',
     fee: 100,
     type: eventData.type,
@@ -147,7 +150,7 @@ function formatDate(isoString: string) {
               </th>
               <th class="px-6 py-3 cursor-pointer hover:text-slate-700">
                 <div class="flex items-center gap-1">
-                  Notes
+                  Notes & Uploads
                   <ChevronDown class="w-3 h-3" />
                 </div>
               </th>
@@ -197,7 +200,7 @@ function formatDate(isoString: string) {
                   :class="session.notes ? 'text-primary-600 hover:text-primary-700' : 'text-slate-400 hover:text-slate-600'"
                 >
                   <FileText class="w-4 h-4" />
-                  {{ session.notes ? 'View Notes' : 'Add Note' }}
+                  {{ session.notes ? 'View Notes' : 'Upload Notes' }}
                 </button>
               </td>
               <td class="px-6 py-4 font-medium text-slate-900">
@@ -208,11 +211,11 @@ function formatDate(isoString: string) {
                   v-if="session.status === 'Confirmed'" 
                   size="sm" 
                   variant="outline"
-                  class="h-8 text-xs"
+                  class="h-8 text-xs bg-green-600 hover:bg-green-700 text-white border-transparent"
                   @click="openCompleteModal(session)"
                 >
                   <CheckCircle class="w-3 h-3 mr-1" />
-                  Complete
+                  Finish
                 </Button>
                 <button class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
                   <MoreVertical class="w-4 h-4" />

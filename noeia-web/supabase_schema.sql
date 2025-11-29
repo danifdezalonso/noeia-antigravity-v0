@@ -67,6 +67,8 @@
     status text default 'Confirmed',
     fee numeric default 0,
     notes text,
+    type text default 'Session',
+    color text,
     invoice_id uuid references public.invoices(id),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
   );
@@ -127,9 +129,9 @@
   (uuid_generate_v4(), 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Initial Consultation (60m)', 150);
 
   -- Insert Mock Sessions
-  insert into public.sessions (id, organization_id, client_id, professional_id, title, start_time, end_time, status, fee, notes, invoice_id)
+  insert into public.sessions (id, organization_id, client_id, professional_id, title, start_time, end_time, status, fee, notes, type, color, invoice_id)
   values
-  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Therapy Session', now() + interval '1 day' + interval '10 hours', now() + interval '1 day' + interval '10 hours 50 minutes', 'Confirmed', 120, 'Regular session', 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
-  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Initial Consultation', now() + interval '2 days' + interval '14 hours', now() + interval '2 days' + interval '15 hours', 'Pending', 150, 'First time visit', 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'),
-  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Follow-up', now() - interval '1 day' + interval '16 hours 30 minutes', now() - interval '1 day' + interval '17 hours 20 minutes', 'Completed', 120, 'Follow up on progress', null),
-  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Therapy Session', now() + interval '3 days' + interval '11 hours', now() + interval '3 days' + interval '11 hours 50 minutes', 'Confirmed', 120, null, null);
+  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Therapy Session', now() + interval '1 day' + interval '10 hours', now() + interval '1 day' + interval '10 hours 50 minutes', 'Confirmed', 120, 'Regular session', 'Session', null, 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'),
+  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Initial Consultation', now() + interval '2 days' + interval '14 hours', now() + interval '2 days' + interval '15 hours', 'Pending', 150, 'First time visit', 'Consultation', null, 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22'),
+  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', 'Follow-up', now() - interval '1 day' + interval '16 hours 30 minutes', now() - interval '1 day' + interval '17 hours 20 minutes', 'Completed', 120, 'Follow up on progress', 'Session', null, null),
+  (uuid_generate_v4(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44', 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', 'Therapy Session', now() + interval '3 days' + interval '11 hours', now() + interval '3 days' + interval '11 hours 50 minutes', 'Confirmed', 120, null, 'Session', null, null);

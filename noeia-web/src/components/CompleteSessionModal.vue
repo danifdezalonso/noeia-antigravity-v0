@@ -12,11 +12,26 @@ const emit = defineEmits(['close', 'complete'])
 
 const notes = ref('')
 const duration = ref(50)
-const fee = ref(120)
+const fee = ref(100)
 const type = ref('Therapy Session')
 const generateBill = ref(true)
 const isAnalyzing = ref(false)
 const aiResult = ref<any>(null)
+const uploadedFile = ref<any>(null)
+const bookNext = ref(false)
+const nextDate = ref(new Date())
+const fileInput = ref<HTMLInputElement | null>(null)
+
+function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    uploadedFile.value = target.files[0]
+    // Simulate upload / processing
+    setTimeout(() => {
+      notes.value += `\n[Attached Recording: ${uploadedFile.value?.name}]`
+    }, 500)
+  }
+}
 
 // Mock AI Analysis
 function analyzeSession() {
@@ -47,7 +62,9 @@ function submit() {
     sessionId: props.session.id,
     notes: notes.value + (aiResult.value ? `\n\n[AI Summary]: ${aiResult.value.summary}` : ''),
     finalFee: fee.value,
-    generateBill: generateBill.value
+    generateBill: generateBill.value,
+    bookNext: bookNext.value,
+    nextDate: nextDate.value
   })
   emit('close')
 }
@@ -102,9 +119,31 @@ function submit() {
             <div class="flex items-center justify-between mb-2">
               <label class="block text-sm font-medium text-slate-700">Session Notes</label>
               <div class="flex gap-2">
-                <button class="text-xs flex items-center gap-1 text-slate-500 hover:text-primary-600 transition-colors">
-                  <Upload class="w-3 h-3" /> Upload Recording
-                </button>
+                <input 
+                  type="file" 
+                  ref="fileInput" 
+                  class="hidden" 
+                  accept="image/*,.pdf,.doc,.docx"
+                  @change="handleFileUpload"
+                >
+                
+                <div class="space-y-4">
+                  <!-- File Upload -->
+                  <div 
+                    class="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-primary-300 hover:bg-primary-50/30 transition-colors cursor-pointer"
+                    @click="fileInput?.click()"
+                  >
+                    <div class="flex flex-col items-center justify-center text-slate-500">
+                      <Upload class="w-6 h-6 mb-2" />
+                      <p class="text-sm font-medium">
+                        {{ uploadedFile ? uploadedFile.name : 'Click to upload files' }}
+                      </p>
+                      <p v-if="!uploadedFile" class="text-xs text-slate-400">
+                        PDF, DOCX, JPG, PNG, etc.
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <button class="text-xs flex items-center gap-1 text-slate-500 hover:text-primary-600 transition-colors">
                   <Mic class="w-3 h-3" /> Record
                 </button>

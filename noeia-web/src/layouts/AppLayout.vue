@@ -13,7 +13,8 @@ import {
   CreditCard,
   HelpCircle,
   ChevronRight,
-  Plus
+  Plus,
+  Search
 } from 'lucide-vue-next'
 
 import OrgSelector from '@/components/OrgSelector.vue'
@@ -114,7 +115,7 @@ function isActive(path: string) {
 
         <!-- Mobile Search Trigger (visible only on mobile) -->
         <button class="md:hidden p-2 text-slate-500 hover:text-slate-700">
-          <search class="w-5 h-5" />
+          <Search class="w-5 h-5" />
         </button>
 
         <div class="flex items-center gap-1 sm:gap-2 border-r border-slate-200 pr-2 sm:pr-4 mr-1 sm:mr-2">
