@@ -95,9 +95,9 @@ function handleSelect(result: any) {
     // Navigate to calendar and focus date (simplified for now to just go to calendar)
     // Ideally we'd pass a query param ?date=...
     const date = new Date(result.data.start)
-    router.push({ path: '/app/calendar', query: { date: date.toISOString() } })
+    router.push({ path: '/app/doctor/calendar', query: { date: date.toISOString() } })
   } else if (result.type === 'Invoice') {
-    router.push('/app/billing')
+    router.push('/app/doctor/billing')
   }
 }
 
@@ -106,7 +106,7 @@ function handleCreate(type: 'Client' | 'Session') {
   if (type === 'Client') {
     router.push(`/app/doctor/patients?action=create`)
   } else if (type === 'Session') {
-    router.push('/app/calendar?action=create')
+    router.push('/app/doctor/calendar?action=create')
   }
 }
 

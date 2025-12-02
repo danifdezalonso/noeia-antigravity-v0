@@ -250,12 +250,8 @@ const router = createRouter({
                 else return '/app/doctor'
             }
         },
-        {
-            path: '/app/client',
-            name: 'client-dashboard',
-            component: () => import('@/pages/app/Dashboard.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
+
+        // --- Doctor Routes ---
         {
             path: '/app/doctor',
             name: 'doctor-dashboard',
@@ -263,27 +259,15 @@ const router = createRouter({
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
-            path: '/app/ai',
-            name: 'ai',
-            component: () => import('@/pages/app/AI.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/calendar',
-            name: 'calendar',
+            path: '/app/doctor/calendar',
+            name: 'doctor-calendar',
             component: () => import('@/pages/app/Calendar.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
-            path: '/app/client/profile',
-            name: 'ClientProfile',
-            component: () => import('@/pages/app/client/ClientProfile.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/client/billing',
-            name: 'ClientBilling',
-            component: () => import('@/pages/app/client/ClientBilling.vue'),
+            path: '/app/doctor/sessions',
+            name: 'doctor-sessions',
+            component: () => import('@/pages/app/Sessions.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
@@ -294,39 +278,129 @@ const router = createRouter({
         },
         {
             path: '/app/doctor/patients/:id',
-            name: 'client-detail',
+            name: 'doctor-patient-detail',
             component: () => import('@/pages/app/ClientDetail.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
-            path: '/app/sessions',
-            name: 'sessions',
-            component: () => import('@/pages/app/Sessions.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/billing',
-            name: 'billing',
-            component: () => import('@/pages/app/Billing.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/settings',
-            name: 'settings',
-            component: () => import('@/pages/app/Settings.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/messages',
-            name: 'messages',
+            path: '/app/doctor/messages',
+            name: 'doctor-messages',
             component: () => import('@/pages/app/Messages.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
+            path: '/app/doctor/billing',
+            name: 'doctor-billing',
+            component: () => import('@/pages/app/Billing.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/doctor/ai',
+            name: 'doctor-ai',
+            component: () => import('@/pages/app/AI.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/doctor/settings',
+            name: 'doctor-settings',
+            component: () => import('@/pages/app/Settings.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+
+        // --- Client Routes ---
+        {
+            path: '/app/client',
+            name: 'client-dashboard',
+            component: () => import('@/pages/app/Dashboard.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/client/calendar',
+            name: 'client-calendar',
+            component: () => import('@/pages/app/Calendar.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/client/messages',
+            name: 'client-messages',
+            component: () => import('@/pages/app/Messages.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/client/billing',
+            name: 'client-billing',
+            component: () => import('@/pages/app/client/ClientBilling.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/client/profile',
+            name: 'client-profile',
+            component: () => import('@/pages/app/client/ClientProfile.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/client/settings',
+            name: 'client-settings',
+            component: () => import('@/pages/app/Settings.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+
+        // --- Organization Routes ---
+        {
+            path: '/app/organization',
+            name: 'org-dashboard',
+            component: () => import('@/pages/app/org/OrganizationDashboard.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/doctors',
+            name: 'org-doctors',
+            component: () => import('@/pages/app/org/OrganizationDoctors.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/patients',
+            name: 'org-patients',
+            component: () => import('@/pages/app/org/OrganizationPatients.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/calendar',
+            name: 'org-calendar',
+            component: () => import('@/pages/app/org/OrganizationCalendar.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/messages',
+            name: 'org-messages',
+            component: () => import('@/pages/app/Messages.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/office',
+            name: 'org-office',
+            component: () => import('@/pages/app/org/OrganizationOffice.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/billing',
+            name: 'org-billing',
+            component: () => import('@/pages/app/org/OrganizationBilling.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/organization/settings',
+            name: 'org-settings',
+            component: () => import('@/pages/app/org/OrganizationSettings.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+
+        // --- Onboarding Routes ---
+        {
             path: '/app/onboarding',
             name: 'onboarding',
             component: () => import('@/pages/app/ClientOnboarding.vue'),
-            meta: { requiresAuth: true, layout: 'public' }, // Use public layout or none for full screen
+            meta: { requiresAuth: true, layout: 'public' },
         },
         {
             path: '/app/doctor-onboarding',
@@ -339,49 +413,6 @@ const router = createRouter({
             name: 'organization-onboarding',
             component: () => import('@/pages/app/OrganizationOnboarding.vue'),
             meta: { requiresAuth: true, layout: 'public' },
-        },
-        // Organization App Routes
-        {
-            path: '/app/organization',
-            name: 'org-dashboard',
-            component: () => import('@/pages/app/org/OrganizationDashboard.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/org/doctors',
-            name: 'org-doctors',
-            component: () => import('@/pages/app/org/OrganizationDoctors.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/org/patients',
-            name: 'org-patients',
-            component: () => import('@/pages/app/org/OrganizationPatients.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/org/calendar',
-            name: 'org-calendar',
-            component: () => import('@/pages/app/org/OrganizationCalendar.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/org/office',
-            name: 'OrganizationOffice',
-            component: () => import('@/pages/app/org/OrganizationOffice.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/org/billing',
-            name: 'OrganizationBilling',
-            component: () => import('@/pages/app/org/OrganizationBilling.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
-        },
-        {
-            path: '/app/org/settings',
-            name: 'org-settings',
-            component: () => import('@/pages/app/org/OrganizationSettings.vue'),
-            meta: { requiresAuth: true, layout: 'app' },
         },
     ],
 })

@@ -49,33 +49,33 @@ onMounted(() => {
 
 const defaultNavigation = [
   { name: 'Dashboard', href: '/app/doctor', icon: LayoutDashboard },
-  { name: 'Calendar', href: '/app/calendar', icon: Calendar },
-  { name: 'Sessions', href: '/app/sessions', icon: Clock },
+  { name: 'Calendar', href: '/app/doctor/calendar', icon: Calendar },
+  { name: 'Sessions', href: '/app/doctor/sessions', icon: Clock },
   { name: 'Patients', href: '/app/doctor/patients', icon: Users },
-  { name: 'Messages', href: '/app/messages', icon: MessageSquare },
-  { name: 'Billing', href: '/app/billing', icon: CreditCard },
-  { name: 'IA', href: '/app/ai', icon: Sparkles },
-  { name: 'Settings', href: '/app/settings', icon: Settings },
+  { name: 'Messages', href: '/app/doctor/messages', icon: MessageSquare },
+  { name: 'Billing', href: '/app/doctor/billing', icon: CreditCard },
+  { name: 'IA', href: '/app/doctor/ai', icon: Sparkles },
+  { name: 'Settings', href: '/app/doctor/settings', icon: Settings },
 ]
 
 const clientNavigation = [
   { name: 'Dashboard', href: '/app/client', icon: LayoutDashboard },
-  { name: 'Calendar', href: '/app/calendar', icon: Calendar },
-  { name: 'Messages', href: '/app/messages', icon: MessageSquare },
+  { name: 'Calendar', href: '/app/client/calendar', icon: Calendar },
+  { name: 'Messages', href: '/app/client/messages', icon: MessageSquare },
   { name: 'Billing', href: '/app/client/billing', icon: CreditCard },
-  { name: 'Profile', href: '/app/profile', icon: User },
-  { name: 'Settings', href: '/app/settings', icon: Settings },
+  { name: 'Profile', href: '/app/client/profile', icon: User },
+  { name: 'Settings', href: '/app/client/settings', icon: Settings },
 ]
 
 const organizationNavigation = [
   { name: 'Dashboard', href: '/app/organization', icon: LayoutDashboard },
-  { name: 'Doctors', href: '/app/org/doctors', icon: Stethoscope },
-  { name: 'Patients', href: '/app/org/patients', icon: Users },
-  { name: 'Calendar', href: '/app/org/calendar', icon: Calendar },
-  { name: 'Messages', href: '/app/messages', icon: MessageSquare },
-  { name: 'Office', href: '/app/org/office', icon: Building },
-  { name: 'Billing', href: '/app/org/billing', icon: CreditCard },
-  { name: 'Settings', href: '/app/org/settings', icon: Settings },
+  { name: 'Doctors', href: '/app/organization/doctors', icon: Stethoscope },
+  { name: 'Patients', href: '/app/organization/patients', icon: Users },
+  { name: 'Calendar', href: '/app/organization/calendar', icon: Calendar },
+  { name: 'Messages', href: '/app/organization/messages', icon: MessageSquare },
+  { name: 'Office', href: '/app/organization/office', icon: Building },
+  { name: 'Billing', href: '/app/organization/billing', icon: CreditCard },
+  { name: 'Settings', href: '/app/organization/settings', icon: Settings },
 ]
 
 const navigation = computed(() => {
