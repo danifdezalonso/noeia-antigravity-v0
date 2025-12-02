@@ -34,9 +34,9 @@ async function handleSaveClient(clientData: any) {
       name: clientData.name,
       email: clientData.email,
       phone: clientData.phone,
-      dob: '1990-01-01', // Default or add to form
+      dob: clientData.dob,
       status: 'Active',
-      related: clientData.relatedPatient ? `${clientData.relatedPatient} (${clientData.relationType})` : 'None'
+      related: clientData.isLinked && clientData.relatedPatient ? 'Linked' : 'None' // Simplified for list view
     })
   } catch (error) {
     console.error('Failed to add client:', error)

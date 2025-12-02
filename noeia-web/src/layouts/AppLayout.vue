@@ -24,6 +24,7 @@ import ProfileDropdown from '@/components/ProfileDropdown.vue'
 import FeedbackModal from '@/components/FeedbackModal.vue'
 import HelpModal from '@/components/HelpModal.vue'
 import AIAssistant from '@/components/AIAssistant.vue'
+import CreateClientModal from '@/components/CreateClientModal.vue'
 
 const route = useRoute()
 const store = useAppStore()
@@ -31,6 +32,7 @@ const isSidebarOpen = ref(false)
 const isFeedbackOpen = ref(false)
 const isHelpOpen = ref(false)
 const isQuickAddOpen = ref(false)
+const isClientModalOpen = ref(false)
 
 onMounted(() => {
   store.fetchAll()
@@ -101,7 +103,10 @@ function isActive(path: string) {
               <Clock class="w-4 h-4" />
               Session
             </button>
-            <button class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors flex items-center gap-2">
+            <button 
+              @click="isQuickAddOpen = false; isClientModalOpen = true"
+              class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors flex items-center gap-2"
+            >
               <Users class="w-4 h-4" />
               Patient
             </button>
@@ -215,7 +220,7 @@ function isActive(path: string) {
     <!-- Modals -->
     <FeedbackModal :is-open="isFeedbackOpen" @close="isFeedbackOpen = false" />
     <HelpModal :is-open="isHelpOpen" @close="isHelpOpen = false" />
+    <CreateClientModal :is-open="isClientModalOpen" @close="isClientModalOpen = false" />
 
   </div>
 </template>
-

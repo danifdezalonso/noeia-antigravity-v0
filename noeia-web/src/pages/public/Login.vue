@@ -4,19 +4,6 @@ import { useAuthStore } from '@/stores/auth'
 import { ArrowRight } from 'lucide-vue-next'
 
 const auth = useAuthStore()
-const bypassPassword = ref('')
-
-function handleBypass() {
-  if (bypassPassword.value === 'admin') {
-    auth.bypassLogin()
-  } else {
-    alert('Invalid password')
-  }
-}
-
-function handleClientLogin() {
-    auth.loginAsClient()
-}
 </script>
 
 <template>
@@ -29,9 +16,10 @@ function handleClientLogin() {
 
     <!-- Main Actions -->
     <div class="w-full max-w-sm space-y-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <!-- Google Login (Keep as is or remove if not needed, but usually good to keep for real auth) -->
         <button 
             @click="auth.login()"
-            class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all hover:shadow-md hover:-translate-y-0.5"
+            class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-all hover:shadow-md"
         >
             <svg class="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -47,33 +35,34 @@ function handleClientLogin() {
                 <div class="w-full border-t border-slate-100"></div>
             </div>
             <div class="relative flex justify-center text-xs uppercase">
-                <span class="bg-white px-2 text-slate-400">Developer Access</span>
+                <span class="bg-white px-2 text-slate-400">Test Access</span>
             </div>
         </div>
 
         <div class="space-y-3">
-            <div class="flex gap-2">
-                <input 
-                    v-model="bypassPassword"
-                    type="password" 
-                    placeholder="Admin password"
-                    class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:border-primary-500"
-                    @keydown.enter="handleBypass"
-                />
-                <button 
-                    @click="handleBypass"
-                    class="px-3 py-2 bg-slate-900 text-white text-xs font-medium rounded-md hover:bg-slate-800"
-                >
-                    Bypass
-                </button>
-            </div>
-
+            <!-- Doctor Login -->
             <button 
-                @click="handleClientLogin"
-                class="w-full px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-medium rounded-md hover:bg-emerald-100 flex items-center justify-center gap-2"
+                @click="auth.loginAsDoctor()"
+                class="w-full px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
-                Login as Test Client
-                <ArrowRight class="w-3 h-3" />
+                Login as Doctor (Test)
+                <ArrowRight class="w-4 h-4" />
+            </button>
+
+            <!-- Organization Login -->
+            <button 
+                @click="auth.loginAsOrganization()"
+                class="w-full px-4 py-3 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-all hover:shadow-sm flex items-center justify-center gap-2"
+            >
+                Login as Organization (Test)
+            </button>
+
+            <!-- Client Login -->
+            <button 
+                @click="auth.loginAsClient()"
+                class="w-full px-4 py-3 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-all hover:shadow-sm flex items-center justify-center gap-2"
+            >
+                Login as Client (Test)
             </button>
         </div>
     </div>

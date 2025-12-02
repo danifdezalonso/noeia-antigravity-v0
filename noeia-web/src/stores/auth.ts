@@ -19,21 +19,45 @@ export const useAuthStore = defineStore('auth', () => {
         if (error) console.error('Login error:', error)
     }
 
-    function bypassLogin() {
+    function loginAsDoctor() {
         user.value = {
-            id: 'dev-user',
+            id: 'test-doctor',
             aud: 'authenticated',
             role: 'authenticated',
-            email: 'dev@noeia.com',
+            email: 'doctor@noeia.com',
             email_confirmed_at: new Date().toISOString(),
             phone: '',
             confirmation_sent_at: '',
             confirmed_at: '',
             last_sign_in_at: '',
-            app_metadata: { provider: 'email', providers: ['email'] },
+            app_metadata: { provider: 'email', providers: ['email'], role: 'doctor' },
             user_metadata: {
-                full_name: 'Dev User',
-                avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dev'
+                full_name: 'Dr. Sarah Connor',
+                avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+                role_label: 'Doctor'
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        } as User
+        router.push('/app')
+    }
+
+    function loginAsOrganization() {
+        user.value = {
+            id: 'test-org',
+            aud: 'authenticated',
+            role: 'authenticated',
+            email: 'admin@clinic.com',
+            email_confirmed_at: new Date().toISOString(),
+            phone: '',
+            confirmation_sent_at: '',
+            confirmed_at: '',
+            last_sign_in_at: '',
+            app_metadata: { provider: 'email', providers: ['email'], role: 'organization' },
+            user_metadata: {
+                full_name: 'Clinic Admin',
+                avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
+                role_label: 'Organization'
             },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -52,17 +76,15 @@ export const useAuthStore = defineStore('auth', () => {
             confirmation_sent_at: '',
             confirmed_at: '',
             last_sign_in_at: '',
-            app_metadata: { provider: 'email', providers: ['email'] },
+            app_metadata: { provider: 'email', providers: ['email'], role: 'client' },
             user_metadata: {
-                full_name: 'Sarah Connor',
-                avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah'
+                full_name: 'John Doe',
+                avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+                role_label: 'Client'
             },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User
-        // Ideally redirect to a client portal, but for now app is fine or maybe we need a client view?
-        // For this task, let's assume they go to the same app but maybe see different things?
-        // Or just redirect to /app for now.
         router.push('/app')
     }
 
@@ -73,20 +95,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function checkAuth() {
-        // If we already have a user (e.g. from bypass), don't overwrite with null session
-        if (user.value?.id === 'dev-user') return
-
         const { data: { session } } = await supabase.auth.getSession()
-
-        // Check again in case bypass was clicked during await
-        if (user.value?.id === 'dev-user') return
 
         user.value = session?.user || null
 
         supabase.auth.onAuthStateChange((_event, session) => {
-            // Don't kick out the dev user
-            if (user.value?.id === 'dev-user') return
-
             user.value = session?.user || null
             if (!session && router.currentRoute.value.meta.requiresAuth) {
                 router.push('/login')
@@ -98,7 +111,9 @@ export const useAuthStore = defineStore('auth', () => {
         user,
         isAuthenticated,
         login,
-        bypassLogin,
+        login,
+        loginAsDoctor,
+        loginAsOrganization,
         loginAsClient,
         logout,
         checkAuth,

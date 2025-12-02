@@ -5,11 +5,17 @@ import Button from '@/components/ui/Button.vue'
 import { Users, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Clock } from 'lucide-vue-next'
 import CompleteSessionModal from '@/components/CompleteSessionModal.vue'
 
+import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import { storeToRefs } from 'pinia'
 
 const store = useAppStore()
+const authStore = useAuthStore()
 const { enrichedSessions, clients, enrichedInvoices } = storeToRefs(store)
+const { user } = storeToRefs(authStore)
+
+const userRole = computed(() => user.value?.app_metadata?.role || 'doctor')
+const userRoleLabel = computed(() => user.value?.user_metadata?.role_label || 'Doctor')
 
 const isCompleteModalOpen = ref(false)
 const selectedSession = ref<any>(null)
@@ -112,7 +118,20 @@ async function handleCompleteSession(data: any) {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+          <span 
+            v-if="userRoleLabel"
+            class="px-2.5 py-0.5 rounded-full text-xs font-medium border"
+            :class="{
+              'bg-primary-50 text-primary-700 border-primary-100': userRole === 'doctor',
+              'bg-purple-50 text-purple-700 border-purple-100': userRole === 'organization',
+              'bg-emerald-50 text-emerald-700 border-emerald-100': userRole === 'client'
+            }"
+          >
+            {{ userRoleLabel }} View
+          </span>
+        </div>
         <p class="text-slate-500">Welcome back, here's what's happening today.</p>
       </div>
       <Button>
