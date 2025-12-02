@@ -1,0 +1,67 @@
+
+> noeia-web@0.0.0 build
+> vue-tsc -b && vite build
+
+vite v7.2.4 building client environment for production...
+transforming...
+✓ 1877 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                                 0.46 kB │ gzip:   0.29 kB
+dist/assets/Billing-C7Ldr8sS.css                                                0.07 kB │ gzip:   0.09 kB
+dist/assets/CompleteSessionModal-Cnig0785.css                                   0.14 kB │ gzip:   0.11 kB
+dist/assets/Pricing-BL1FXGwv.css                                                0.23 kB │ gzip:   0.17 kB
+dist/assets/About-B2dd52vF.css                                                  0.23 kB │ gzip:   0.17 kB
+dist/assets/Login-DYn0AwO7.css                                                  0.23 kB │ gzip:   0.17 kB
+dist/assets/AI-DvxTraBu.css                                                     0.25 kB │ gzip:   0.14 kB
+dist/assets/Landing-B_1hmP6U.css                                                0.31 kB │ gzip:   0.19 kB
+dist/assets/DoctorOnboarding-CfB58D7n.css                                       0.76 kB │ gzip:   0.26 kB
+dist/assets/ClientOnboarding-BQ67O49Q.css                                       0.77 kB │ gzip:   0.26 kB
+dist/assets/OrganizationOnboarding-CX0R3nt7.css                                 0.94 kB │ gzip:   0.29 kB
+dist/assets/index-DM-DOiGa.css                                                 55.28 kB │ gzip:   8.77 kB
+dist/assets/_plugin-vue_export-helper-DlAUqK2U.js                               0.09 kB │ gzip:   0.10 kB
+dist/assets/chevron-down-DVTst71f.js                                            0.13 kB │ gzip:   0.14 kB
+dist/assets/chevron-left-DzZsKOr3.js                                            0.13 kB │ gzip:   0.14 kB
+dist/assets/circle-check-big-fHV1JwFR.js                                        0.19 kB │ gzip:   0.18 kB
+dist/assets/smartphone-znkVuOBK.js                                              0.19 kB │ gzip:   0.18 kB
+dist/assets/text-align-start-2lfQnUYW.js                                        0.20 kB │ gzip:   0.17 kB
+dist/assets/ellipsis-CoTHEwze.js                                                0.22 kB │ gzip:   0.16 kB
+dist/assets/upload-DrqorV_H.js                                                  0.23 kB │ gzip:   0.19 kB
+dist/assets/download-Bl19DmJA.js                                                0.23 kB │ gzip:   0.19 kB
+dist/assets/ellipsis-vertical-DTsA0xLY.js                                       0.23 kB │ gzip:   0.17 kB
+dist/assets/video-CHhx_KC0.js                                                   0.25 kB │ gzip:   0.22 kB
+dist/assets/funnel-B0y0wXhT.js                                                  0.25 kB │ gzip:   0.21 kB
+dist/assets/arrow-up-right-BanW9jyR.js                                          0.28 kB │ gzip:   0.20 kB
+dist/assets/save-lRlnH_D9.js                                                    0.32 kB │ gzip:   0.23 kB
+dist/assets/trash-2-D448kPJR.js                                                 0.33 kB │ gzip:   0.21 kB
+dist/assets/OrganizationSettings-BEYDJIZF.js                                    0.34 kB │ gzip:   0.27 kB
+dist/assets/Card.vue_vue_type_script_setup_true_lang-BeYUCMxL.js                0.83 kB │ gzip:   0.45 kB
+dist/assets/ClientProfile-lzerp1Fq.js                                           1.22 kB │ gzip:   0.60 kB
+dist/assets/PublicNavbar.vue_vue_type_script_setup_true_lang-BvSruKjt.js        1.79 kB │ gzip:   0.84 kB
+dist/assets/Login-CQdDGi0h.js                                                   3.15 kB │ gzip:   1.29 kB
+dist/assets/ClientBilling-FtSciy3c.js                                           4.23 kB │ gzip:   1.66 kB
+dist/assets/ClientDetail-Mz-Qli45.js                                            5.05 kB │ gzip:   1.92 kB
+dist/assets/CreateEventModal.vue_vue_type_script_setup_true_lang-BphCL96c.js    5.20 kB │ gzip:   1.63 kB
+dist/assets/About-CprRmk4I.js                                                   5.23 kB │ gzip:   2.36 kB
+dist/assets/Clients-1HBfMf2j.js                                                 5.35 kB │ gzip:   2.06 kB
+dist/assets/OrganizationPatients-C5cPpWpJ.js                                    5.47 kB │ gzip:   1.97 kB
+dist/assets/Pricing-C0MWebq4.js                                                 5.73 kB │ gzip:   2.35 kB
+dist/assets/OrganizationBilling-CyOeMvKe.js                                     6.73 kB │ gzip:   2.24 kB
+dist/assets/Messages-F3jcyw4c.js                                                6.86 kB │ gzip:   2.74 kB
+dist/assets/OrganizationDashboard-BlEau71-.js                                   7.43 kB │ gzip:   2.60 kB
+dist/assets/OrganizationOffice-B2xXvtCM.js                                      8.10 kB │ gzip:   2.73 kB
+dist/assets/Settings-BKbv028b.js                                                8.12 kB │ gzip:   2.71 kB
+dist/assets/DoctorOnboarding-sV4p4DFQ.js                                        9.46 kB │ gzip:   3.29 kB
+dist/assets/Landing-BEsO2mgW.js                                                 9.49 kB │ gzip:   3.07 kB
+dist/assets/ClientOnboarding-D5ASEY7G.js                                       10.45 kB │ gzip:   3.35 kB
+dist/assets/OrganizationDoctors-D_Zy8uOP.js                                    11.18 kB │ gzip:   3.32 kB
+dist/assets/Dashboard-C2EVLYrW.js                                              11.73 kB │ gzip:   3.85 kB
+dist/assets/Billing-C6peLCL-.js                                                12.87 kB │ gzip:   4.23 kB
+dist/assets/Sessions-DF2vzgEa.js                                               13.97 kB │ gzip:   4.98 kB
+dist/assets/OrganizationOnboarding-CkWNRxJL.js                                 15.42 kB │ gzip:   4.89 kB
+dist/assets/OrganizationCalendar-BITshw8T.js                                   16.47 kB │ gzip:   4.96 kB
+dist/assets/CompleteSessionModal-JOrbiNvn.js                                   18.99 kB │ gzip:   6.16 kB
+dist/assets/Calendar-DTljTwHv.js                                               22.75 kB │ gzip:   7.03 kB
+dist/assets/AI-DuJVvXyF.js                                                     23.02 kB │ gzip:   6.78 kB
+dist/assets/index-BZpzS9Tv.js                                                 355.99 kB │ gzip: 106.65 kB
+✓ built in 3.58s
