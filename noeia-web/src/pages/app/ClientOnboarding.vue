@@ -129,11 +129,12 @@ const progress = computed(() => ((currentStep.value - 1) / (totalSteps - 1)) * 1
   <div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
     
     <!-- Developer Skip -->
+    <!-- Developer Skip -->
     <button 
       @click="skipOnboarding"
-      class="absolute top-4 right-4 text-xs text-slate-400 hover:text-slate-600 uppercase tracking-wider font-semibold"
+      class="absolute top-4 right-4 z-50 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-full shadow-lg transition-all transform hover:scale-105"
     >
-      Dev Skip
+      DEV SKIP 
     </button>
 
     <!-- Main Card -->

@@ -3,66 +3,91 @@ import { ref, computed, nextTick, onMounted } from 'vue'
 import { Send, Search, MoreVertical, Phone, Video, Paperclip, Smile } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
-// Mock Data
-const currentUser = {
-  id: 'client',
-  name: 'John Doe',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John'
-}
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 
-const conversations = ref([
-  {
-    id: 1,
-    professional: {
-      id: 'pro1',
-      name: 'Dr. Sarah Connor',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-      role: 'Clinical Psychologist',
-      status: 'online'
-    },
-    lastMessage: 'See you at the next session.',
-    lastMessageTime: '10:30 AM',
-    unread: 0,
-    messages: [
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
+
+// Mock Data based on Role
+const role = computed(() => user.value?.app_metadata?.role || 'doctor')
+
+const currentUser = computed(() => ({
+  id: user.value?.id || 'current-user',
+  name: user.value?.user_metadata?.full_name || 'Me',
+  avatar: user.value?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.value?.email || 'User'}`
+}))
+
+// Mock Conversations
+const conversations = computed(() => {
+  if (role.value === 'client') {
+    return [
       {
         id: 1,
-        senderId: 'pro1',
-        text: 'Hi John, how have you been feeling since our last session?',
-        time: 'Yesterday, 2:00 PM'
+        professional: {
+          id: 'pro1',
+          name: 'Dr. Sarah Connor',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+          role: 'Clinical Psychologist',
+          status: 'online'
+        },
+        lastMessage: 'See you at the next session.',
+        lastMessageTime: '10:30 AM',
+        unread: 0,
+        messages: [
+          { id: 1, senderId: 'pro1', text: 'Hi John, how have you been feeling since our last session?', time: 'Yesterday, 2:00 PM' },
+          { id: 2, senderId: currentUser.value.id, text: 'Hi Dr. Connor. I\'ve been doing better, thanks for asking. The exercises really helped.', time: 'Yesterday, 2:15 PM' },
+          { id: 3, senderId: 'pro1', text: 'That\'s great to hear! Remember to keep tracking your mood daily.', time: 'Yesterday, 2:20 PM' },
+          { id: 4, senderId: currentUser.value.id, text: 'Will do. I have a question about the medication though.', time: '10:00 AM' },
+          { id: 5, senderId: 'pro1', text: 'Sure, what would you like to know?', time: '10:05 AM' },
+          { id: 6, senderId: 'pro1', text: 'See you at the next session.', time: '10:30 AM' }
+        ]
+      }
+    ]
+  } else {
+    // Doctor / Organization View
+    return [
+      {
+        id: 1,
+        professional: {
+          id: 'patient1',
+          name: 'Sarah Johnson',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SarahJ',
+          role: 'Patient',
+          status: 'online'
+        },
+        lastMessage: 'I have a question about my appointment.',
+        lastMessageTime: '10:30 AM',
+        unread: 2,
+        messages: [
+          { id: 1, senderId: 'patient1', text: 'Hi Dr., I need to reschedule our next session.', time: 'Yesterday, 2:00 PM' },
+          { id: 2, senderId: currentUser.value.id, text: 'Hello Sarah, no problem. What time works for you?', time: 'Yesterday, 2:15 PM' },
+          { id: 3, senderId: 'patient1', text: 'Is next Tuesday at 3 PM available?', time: 'Yesterday, 2:20 PM' },
+          { id: 4, senderId: currentUser.value.id, text: 'Yes, that works. I have updated the calendar.', time: '10:00 AM' },
+          { id: 5, senderId: 'patient1', text: 'Great, thank you!', time: '10:05 AM' },
+          { id: 6, senderId: 'patient1', text: 'I have a question about my appointment.', time: '10:30 AM' }
+        ]
       },
       {
         id: 2,
-        senderId: 'client',
-        text: 'Hi Dr. Connor. I\'ve been doing better, thanks for asking. The exercises really helped.',
-        time: 'Yesterday, 2:15 PM'
-      },
-      {
-        id: 3,
-        senderId: 'pro1',
-        text: 'That\'s great to hear! Remember to keep tracking your mood daily.',
-        time: 'Yesterday, 2:20 PM'
-      },
-      {
-        id: 4,
-        senderId: 'client',
-        text: 'Will do. I have a question about the medication though.',
-        time: '10:00 AM'
-      },
-      {
-        id: 5,
-        senderId: 'pro1',
-        text: 'Sure, what would you like to know?',
-        time: '10:05 AM'
-      },
-      {
-        id: 6,
-        senderId: 'pro1',
-        text: 'See you at the next session.',
-        time: '10:30 AM'
+        professional: {
+          id: 'patient2',
+          name: 'Michael Brown',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
+          role: 'Patient',
+          status: 'offline'
+        },
+        lastMessage: 'Thanks for the resources.',
+        lastMessageTime: 'Yesterday',
+        unread: 0,
+        messages: [
+          { id: 1, senderId: currentUser.value.id, text: 'Hi Michael, here are the resources we discussed.', time: 'Yesterday, 9:00 AM' },
+          { id: 2, senderId: 'patient2', text: 'Thanks for the resources.', time: 'Yesterday, 10:00 AM' }
+        ]
       }
     ]
   }
-])
+})
 
 const activeConversationId = ref(1)
 const newMessage = ref('')
@@ -90,7 +115,7 @@ function sendMessage() {
   // Add message
   activeConversation.value.messages.push({
     id: Date.now(),
-    senderId: currentUser.id,
+    senderId: currentUser.value.id,
     text: newMessage.value,
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   })
