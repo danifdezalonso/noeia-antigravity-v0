@@ -232,8 +232,8 @@ export const useAppStore = defineStore('app', () => {
                 phone: client.phone,
                 dob: client.dob,
                 status: client.status,
-                related: client.related,
-                professional_id: client.professionalId // Assuming column exists
+                related: client.related
+                // professional_id: client.professionalId // Column missing in DB
             })
             .select()
             .single()
