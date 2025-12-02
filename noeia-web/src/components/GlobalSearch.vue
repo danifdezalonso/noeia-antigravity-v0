@@ -90,7 +90,7 @@ function handleSelect(result: any) {
   searchQuery.value = ''
   
   if (result.type === 'Client') {
-    router.push(`/app/clients/${result.id}`)
+    router.push(`/app/doctor/patients/${result.id}`)
   } else if (result.type === 'Session') {
     // Navigate to calendar and focus date (simplified for now to just go to calendar)
     // Ideally we'd pass a query param ?date=...
@@ -104,7 +104,7 @@ function handleSelect(result: any) {
 function handleCreate(type: 'Client' | 'Session') {
   isOpen.value = false
   if (type === 'Client') {
-    router.push('/app/clients?action=create')
+    router.push(`/app/doctor/patients?action=create`)
   } else if (type === 'Session') {
     router.push('/app/calendar?action=create')
   }

@@ -56,7 +56,7 @@ const notes = [
   <div class="space-y-6">
     <!-- Header -->
     <div class="flex items-center gap-4">
-      <RouterLink to="/app/clients" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+      <RouterLink to="/app/doctor/patients" class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
         <ArrowLeft class="w-5 h-5" />
       </RouterLink>
       <div class="flex-1">

@@ -44,7 +44,7 @@ async function handleSaveClient(clientData: any) {
 }
 
 function navigateToDetail(id: string) {
-  router.push(`/app/clients/${id}`)
+  router.push(`/app/doctor/patients/${id}`)
 }
 </script>
 

@@ -293,7 +293,7 @@ const router = createRouter({
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
-            path: '/app/clients/:id',
+            path: '/app/doctor/patients/:id',
             name: 'client-detail',
             component: () => import('@/pages/app/ClientDetail.vue'),
             meta: { requiresAuth: true, layout: 'app' },
