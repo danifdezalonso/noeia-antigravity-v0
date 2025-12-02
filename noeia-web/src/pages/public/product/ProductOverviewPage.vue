@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
-import { Building, Smartphone, Sparkles, Calendar, Users, Shield, Lock, ArrowRight, FileText, Activity } from 'lucide-vue-next'
+import { Building, Smartphone, Sparkles, Calendar, Users, Shield, ArrowRight, Activity } from 'lucide-vue-next'
 
 // Animation composable
 const useScrollReveal = () => {
@@ -98,7 +98,7 @@ useScrollReveal()
               <Sparkles class="w-6 h-6" />
             </div>
             <h3 class="text-xl font-bold mb-2 text-slate-900">AI assistant</h3>
-            <p class="text-slate-500 mb-4">Mia, your partner for notes and summaries.</p>
+            <p class="text-slate-500 mb-4">NoeIA, your partner for notes and summaries.</p>
             <div class="flex items-center text-emerald-600 font-bold text-sm">
               Learn more <ArrowRight class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -254,9 +254,9 @@ useScrollReveal()
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 text-xs font-bold uppercase tracking-wider">
             Pillar 3
           </div>
-          <h2 class="text-4xl font-bold text-slate-900">Mia, the AI assistant</h2>
+          <h2 class="text-4xl font-bold text-slate-900">NoeIA, the AI assistant</h2>
           <p class="text-lg text-slate-600">
-            Mia listens to your rough notes and transforms them into structured clinical summaries, saving you hours every week.
+            NoeIA listens to your rough notes and transforms them into structured clinical summaries, saving you hours every week.
           </p>
           <ul class="space-y-4">
             <li class="flex items-start gap-3">
@@ -280,7 +280,7 @@ useScrollReveal()
           </ul>
           <RouterLink to="/product/ai">
             <Button variant="outline" class="mt-4 border-slate-200 text-slate-700 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50">
-              Meet Mia
+              Meet NoeIA
             </Button>
           </RouterLink>
         </div>

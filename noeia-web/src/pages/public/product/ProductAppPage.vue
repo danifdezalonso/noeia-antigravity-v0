@@ -347,7 +347,7 @@ useScrollReveal()
       <section class="text-center pb-12 reveal">
         <RouterLink to="/product/ai">
           <Button variant="ghost" class="text-slate-500 hover:text-slate-900 group">
-            Next: Meet Mia, the AI Assistant <ArrowRight class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            Next: Meet NoeIA, the AI Assistant <ArrowRight class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </RouterLink>
       </section>

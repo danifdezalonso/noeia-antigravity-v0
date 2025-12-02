@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import Button from '@/components/ui/Button.vue'
-import { Menu, X, ChevronDown, Sparkles, Smartphone, Building, FileText, Activity, BookOpen, HelpCircle, Mail, ArrowRight } from 'lucide-vue-next'
+import GlowingButton from '@/components/ui/GlowingButton.vue'
+import { Menu, X, ChevronDown, Sparkles, Smartphone, Building, ArrowRight, Calendar, CheckCircle2, Rocket, User, Users, BookOpen, FileText, Activity, HelpCircle, History, Mail } from 'lucide-vue-next'
 
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
@@ -25,86 +25,197 @@ const navItems = [
   { name: 'For psychologists', href: '/for-psychologists', hasDropdown: true },
   { name: 'For clinics', href: '/for-clinics', hasDropdown: true },
   { name: 'For patients', href: '/for-patients', hasDropdown: true },
-  { name: 'Pricing', href: '/pricing', hasDropdown: true },
+  { name: 'Pricing', href: '/pricing', hasDropdown: false },
   { name: 'Resources', href: '/resources', hasDropdown: true },
 ]
 
 // Navigation Data
 const productMenu = {
-  pillars: [
-    { 
-      name: 'Website platform', 
-      href: '/product/website', 
-      description: 'Desktop workspace for clinics and professionals.',
-      icon: Building,
-      color: 'text-blue-600 bg-blue-50'
+  columns: [
+    {
+      title: 'Platform',
+      items: [
+        { 
+          name: 'Website platform', 
+          href: '/product/website', 
+          description: 'Desktop workspace for clinics.',
+          icon: Building,
+          color: 'bg-blue-100 text-blue-600'
+        },
+        { 
+          name: 'Mobile Apps', 
+          href: '/product/app', 
+          description: 'For patients and doctors.',
+          icon: Smartphone,
+          color: 'bg-purple-100 text-purple-600'
+        },
+        { 
+          name: 'AI Assistant', 
+          href: '/product/ai', 
+          description: 'NoeIA, your clinical co-pilot.',
+          icon: Sparkles,
+          color: 'bg-emerald-100 text-emerald-600'
+        },
+      ]
     },
-    { 
-      name: 'Apps', 
-      href: '/product/app', 
-      description: 'Dedicated apps for patients, doctors, and organizations.',
-      icon: Smartphone,
-      color: 'text-purple-600 bg-purple-50'
-    },
-    { 
-      name: 'AI assistant', 
-      href: '/product/ai', 
-      description: 'Mia, a context-aware assistant for notes and summaries.',
-      icon: Sparkles,
-      color: 'text-emerald-600 bg-emerald-50'
-    },
+    {
+      title: 'Features',
+      items: [
+        { name: 'Calendar & scheduling', href: '/product/calendar', description: 'Smart scheduling for clinics.' },
+        { name: 'Client records', href: '/product/records', description: 'Timelines and history.' },
+        { name: 'Offices & rooms', href: '/product/offices', description: 'Space management.' },
+        { name: 'Admin & billing', href: '/product/admin', description: 'Invoices and revenue.' },
+        { name: 'Security', href: '/product/security', description: 'Bank-grade protection.' },
+      ]
+    }
   ],
-  features: [
-    { name: 'Calendar & scheduling', href: '/product/calendar' },
-    { name: 'Client records & history', href: '/product/records' },
-    { name: 'Offices & rooms', href: '/product/offices' },
-    { name: 'Admin & billing', href: '/product/admin' },
-    { name: 'Security & data', href: '/product/security' },
-  ]
+  featured: {
+    title: 'New: AI Agents',
+    description: 'Your 24/7 billing and revenue co-workers handle invoices and collections.',
+    image: '/images/ai-agents.png', // Placeholder
+    color: 'bg-gradient-to-br from-blue-500 to-cyan-400'
+  },
+  bottomBar: {
+    label: 'GUIDE',
+    text: 'What is Revenue Automation?',
+    href: '/resources/revenue-automation'
+  }
 }
 
-const psychologistsMenu = [
-  { name: 'Why Noeia', href: '/for-psychologists#why', description: 'For individual professionals' },
-  { name: 'Daily workflow', href: '/for-psychologists#workflow', description: 'Calendar → Notes → Follow-up' },
-  { name: 'Patient records', href: '/for-psychologists#records', description: 'Documentation examples' },
-  { name: 'AI for notes', href: '/for-psychologists#ai', description: 'Automated summaries & reports' },
-  { name: 'Patient portal', href: '/for-psychologists#portal', description: 'From the therapist view' },
-  { name: 'Getting started', href: '/for-psychologists#start', description: 'Solo practice setup' },
-]
+const psychologistsMenu = {
+  columns: [
+    {
+      title: 'Overview',
+      items: [
+        { name: 'Why Noeia', href: '/for-psychologists', description: 'Reduce admin, stay in control.', icon: CheckCircle2, color: 'bg-orange-100 text-orange-600' },
+        { name: 'Daily workflow', href: '/for-psychologists/workflow', description: 'Calendar → sessions → notes.', icon: Calendar, color: 'bg-blue-100 text-blue-600' },
+        { name: 'Getting started', href: '/for-psychologists/getting-started', description: 'Solo practice setup guide.', icon: Rocket, color: 'bg-pink-100 text-pink-600' },
+      ]
+    },
+    {
+      title: 'Deep Dive',
+      items: [
+        { name: 'Records & docs', href: '/for-psychologists/records', description: 'Structure your notes.' },
+        { name: 'AI for notes', href: '/for-psychologists/ai', description: 'NoeIA as your assistant.' },
+        { name: 'Patient portal', href: '/for-psychologists/portal', description: 'Control what patients see.' },
+      ]
+    }
+  ],
+  featured: {
+    title: 'Meet NoeIA',
+    description: 'See how AI can save you 10 hours a week on documentation.',
+    color: 'bg-gradient-to-br from-purple-600 to-indigo-500'
+  },
+  bottomBar: {
+    label: 'GUIDE',
+    text: 'Switching from paper notes to digital',
+    href: '/resources/switching-guide'
+  }
+}
 
-const clinicsMenu = [
-  { name: 'Clinic overview', href: '/for-clinics#overview', description: 'Multi-professional setup' },
-  { name: 'Doctors & roles', href: '/for-clinics#roles', description: 'Admin, manager & therapist roles' },
-  { name: 'Offices & rooms', href: '/for-clinics#rooms', description: 'Space management' },
-  { name: 'Global calendar', href: '/for-clinics#calendar', description: 'Per doctor or per room' },
-  { name: 'Billing & reporting', href: '/for-clinics#billing', description: 'Track revenue by doctor' },
-  { name: 'Onboarding', href: '/for-clinics#onboarding', description: 'Migrating a new clinic' },
-]
+const clinicsMenu = {
+  columns: [
+    {
+      title: 'Management',
+      items: [
+        { name: 'Clinic overview', href: '/for-clinics', description: 'Run a modern therapy clinic on one platform.', icon: Building, color: 'bg-blue-100 text-blue-600' },
+        { name: 'Team & roles', href: '/for-clinics/team', description: 'Manage doctors, managers, and admins.', icon: Users, color: 'bg-purple-100 text-purple-600' },
+        { name: 'Onboarding', href: '/for-clinics/onboarding', description: 'From first setup to full rollout.', icon: Rocket, color: 'bg-pink-100 text-pink-600' },
+      ]
+    },
+    {
+      title: 'Operations',
+      items: [
+        { name: 'Offices & rooms', href: '/for-clinics/offices', description: 'Organize physical spaces and avoid clashes.' },
+        { name: 'Global calendar', href: '/for-clinics/calendar', description: 'Per doctor, per room, per modality.' },
+        { name: 'Billing & reporting', href: '/for-clinics/billing', description: 'See revenue by doctor and period.' },
+      ]
+    }
+  ],
+  featured: {
+    title: 'Clinic OS',
+    description: 'The operating system for modern mental health practices.',
+    color: 'bg-gradient-to-br from-indigo-500 to-blue-500'
+  },
+  bottomBar: {
+    label: 'GUIDE',
+    text: 'Scaling from solo to group practice',
+    href: '/resources/scaling-guide'
+  }
+}
 
-const patientsMenu = [
-  { name: 'App overview', href: '/for-patients#app', description: 'Your mental health pocket companion' },
-  { name: 'Booking & calendar', href: '/for-patients#booking', description: 'Manage your appointments' },
-  { name: 'Session history', href: '/for-patients#history', description: 'Summaries & progress' },
-  { name: 'Chat with therapist', href: '/for-patients#chat', description: 'Secure messaging' },
-  { name: 'Exercises & homework', href: '/for-patients#homework', description: 'Track your progress' },
-  { name: 'Privacy FAQ', href: '/for-patients#privacy', description: 'How we handle your data' },
-]
+const patientsMenu = {
+  columns: [
+    {
+      title: 'Overview',
+      items: [
+        { name: 'Overview', href: '/for-patients', description: 'What Noeia looks like for patients.', icon: User, color: 'bg-blue-100 text-blue-600' },
+        { name: 'Patient app', href: '/for-patients/app', description: 'Booking, chat, and a clear view of therapy.', icon: Smartphone, color: 'bg-purple-100 text-purple-600' },
+        { name: 'Getting started', href: '/for-patients/getting-started', description: 'What to expect as a patient using Noeia.', icon: Rocket, color: 'bg-pink-100 text-pink-600' },
+      ]
+    },
+    {
+      title: 'Features',
+      items: [
+        { name: 'Booking & calendar', href: '/for-patients/booking', description: 'See availability and manage your sessions.' },
+        { name: 'History & progress', href: '/for-patients/history', description: 'Follow your sessions and improvements over time.' },
+        { name: 'Exercises & guidance', href: '/for-patients/exercises', description: 'Keep your homework and tools in one place.' },
+        { name: 'Privacy & data', href: '/for-patients/privacy', description: 'How your information is handled and protected.' },
+      ]
+    }
+  ],
+  featured: {
+    title: 'Your Safe Space',
+    description: 'Experience therapy with tools designed for your privacy and progress.',
+    color: 'bg-gradient-to-br from-emerald-500 to-teal-400'
+  },
+  bottomBar: {
+    label: 'HELP',
+    text: 'How to prepare for your first session',
+    href: '/resources/first-session-guide'
+  }
+}
 
-const pricingMenu = [
-  { name: 'Plans & features', href: '/pricing#plans', description: 'Full feature matrix' },
-  { name: 'Solo vs Clinic', href: '/pricing#comparison', description: 'Which plan is right for you?' },
-  { name: 'Current offer', href: '/pricing#offer', description: 'Beta pricing details' },
-  { name: 'Billing FAQ', href: '/pricing#faq', description: 'Invoices & payments' },
-]
+const resourcesMenu = {
+  columns: [
+    {
+      title: 'Learning',
+      items: [
+        { name: 'Overview', href: '/resources', description: 'Guides, updates, and help in one place.', icon: BookOpen, color: 'bg-blue-100 text-blue-600' },
+        { name: 'Guides', href: '/resources/guides', description: 'Deep dives on workflows and best practices.', icon: FileText, color: 'bg-indigo-100 text-indigo-600' },
+        { name: 'Blog & articles', href: '/resources/blog', description: 'Thoughts on therapy workflows and tools.', icon: Activity, color: 'bg-emerald-100 text-emerald-600' },
+      ]
+    },
+    {
+      title: 'Support & Updates',
+      items: [
+        { name: 'Help center', href: '/resources/help', description: 'FAQs and how-to answers.', icon: HelpCircle, color: 'bg-orange-100 text-orange-600' },
+        { name: 'Product updates', href: '/resources/updates', description: 'What’s new in Noeia.', icon: Sparkles, color: 'bg-purple-100 text-purple-600' },
+        { name: 'Changelog', href: '/resources/changelog', description: 'Raw release notes by date.', icon: History, color: 'bg-slate-100 text-slate-600' },
+        { name: 'Contact & support', href: '/resources/contact', description: 'Talk to the team or request help.', icon: Mail, color: 'bg-pink-100 text-pink-600' },
+      ]
+    }
+  ],
+  featured: {
+    title: 'Featured Guide',
+    description: 'Learn how to set up your first clinic in Noeia with our comprehensive walkthrough.',
+    color: 'bg-gradient-to-br from-indigo-500 to-violet-500'
+  },
+  bottomBar: {
+    label: 'SUPPORT',
+    text: 'Need help setting up?',
+    href: '/resources/contact'
+  }
+}
 
-const resourcesMenu = [
-  { name: 'Guides & how-tos', icon: BookOpen, href: '/resources#guides', color: 'text-indigo-600 bg-indigo-50' },
-  { name: 'Product updates', icon: Activity, href: '/resources#updates', color: 'text-pink-600 bg-pink-50' },
-  { name: 'Blog', icon: FileText, href: '/resources#blog', color: 'text-teal-600 bg-teal-50' },
-  { name: 'Help center', icon: HelpCircle, href: '/resources#help', color: 'text-cyan-600 bg-cyan-50' },
-  { name: 'Contact support', icon: Mail, href: '/resources#contact', color: 'text-blue-600 bg-blue-50' },
-]
-
+const currentMegaMenu = computed(() => {
+  if (activeDropdown.value === 'Product') return productMenu
+  if (activeDropdown.value === 'For psychologists') return psychologistsMenu
+  if (activeDropdown.value === 'For clinics') return clinicsMenu
+  if (activeDropdown.value === 'For patients') return patientsMenu
+  if (activeDropdown.value === 'Resources') return resourcesMenu
+  return null
+})
 </script>
 
 <template>
@@ -113,45 +224,47 @@ const resourcesMenu = [
     :class="isScrolled || activeDropdown ? 'bg-white border-b border-slate-200 shadow-sm py-3' : 'bg-transparent border-transparent py-5'"
     @mouseleave="activeDropdown = null"
   >
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between relative z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center relative z-50 h-20">
       <!-- Logo -->
-      <RouterLink to="/" class="flex items-center gap-2 group">
+      <RouterLink to="/" class="flex items-center gap-2 group mr-12 shrink-0">
         <span class="font-bold text-xl tracking-tight text-primary-500 group-hover:text-primary-600 transition-colors">noeia</span>
       </RouterLink>
 
       <!-- Desktop Nav -->
-      <nav class="hidden lg:flex items-center gap-8">
+      <nav class="hidden lg:flex items-center gap-1">
         <div 
           v-for="item in navItems" 
           :key="item.name"
-          class="relative"
+          class="relative group"
           @mouseenter="item.hasDropdown ? activeDropdown = item.name : activeDropdown = null"
         >
           <RouterLink 
             :to="item.href" 
-            class="text-sm font-medium transition-colors flex items-center gap-1 py-2"
-            :class="activeDropdown === item.name ? 'text-primary-600' : 'text-slate-600 hover:text-primary-600'"
+            class="text-sm font-medium transition-all duration-200 flex items-center gap-1 px-4 py-2 rounded-full hover:bg-slate-50"
+            :class="activeDropdown === item.name ? 'text-primary-600 bg-slate-50' : 'text-slate-600'"
           >
             {{ item.name }}
-            <ChevronDown v-if="item.hasDropdown" class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === item.name }" />
+            <ChevronDown 
+              v-if="item.hasDropdown" 
+              class="w-3.5 h-3.5 transition-transform duration-200 opacity-50 group-hover:opacity-100"
+              :class="{ 'rotate-180': activeDropdown === item.name }"
+            />
           </RouterLink>
         </div>
       </nav>
 
       <!-- Actions -->
-      <div class="hidden lg:flex items-center gap-4">
-        <RouterLink to="/login" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">
+      <div class="hidden lg:flex items-center gap-4 ml-auto">
+        <RouterLink to="/login" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors px-4 py-2">
           Sign in
         </RouterLink>
         <RouterLink to="/login">
-          <Button size="sm" class="rounded-full px-6 bg-primary-500 hover:bg-primary-600 text-white shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-            Get a demo
-          </Button>
+          <GlowingButton text="Get a demo" />
         </RouterLink>
       </div>
 
       <!-- Mobile Menu Button -->
-      <button @click="isMenuOpen = !isMenuOpen" class="lg:hidden p-2 text-slate-600 hover:text-primary-600 transition-colors">
+      <button @click="isMenuOpen = !isMenuOpen" class="lg:hidden ml-auto p-2 text-slate-600 hover:text-primary-600 transition-colors">
         <Menu v-if="!isMenuOpen" class="w-6 h-6" />
         <X v-else class="w-6 h-6" />
       </button>
@@ -168,117 +281,72 @@ const resourcesMenu = [
     >
       <div 
         v-if="activeDropdown" 
-        class="absolute top-full left-0 w-full bg-white border-b border-slate-100 shadow-xl pt-6 pb-8 z-40"
+        class="absolute top-full left-0 w-full z-40"
         @mouseenter="activeDropdown = activeDropdown"
         @mouseleave="activeDropdown = null"
       >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6">
-          
-          <!-- Product Menu -->
-          <div v-if="activeDropdown === 'Product'" class="grid grid-cols-12 gap-8">
-            <!-- Pillars (Left Column) -->
-            <div class="col-span-7 grid gap-4">
-               <RouterLink 
-                  v-for="pillar in productMenu.pillars" 
-                  :key="pillar.name"
-                  :to="pillar.href"
-                  class="group flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 relative overflow-hidden"
-                >
-                  <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors" :class="pillar.color">
-                    <component :is="pillar.icon" class="w-5 h-5" />
+        <!-- Generic Mega Menu Layout -->
+        <div 
+          v-if="(activeDropdown === 'Product' || activeDropdown === 'For psychologists' || activeDropdown === 'For clinics' || activeDropdown === 'For patients' || activeDropdown === 'Resources') && currentMegaMenu" 
+          class="bg-white border-b border-slate-100 shadow-xl"
+        >
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div class="grid grid-cols-12 gap-12">
+              
+              <!-- Columns -->
+              <div 
+                v-for="(col, idx) in currentMegaMenu.columns" 
+                :key="idx"
+                class="col-span-3"
+              >
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">{{ col.title }}</h3>
+                <div class="space-y-6">
+                  <RouterLink 
+                    v-for="item in col.items" 
+                    :key="item.name" 
+                    :to="item.href"
+                    class="group block transform transition-transform duration-200 hover:-translate-y-1"
+                  >
+                    <div class="flex items-start gap-4">
+                      <div v-if="'icon' in item" class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors" :class="'color' in item ? item.color : ''">
+                        <component :is="item.icon" class="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div class="font-bold text-slate-900 group-hover:text-primary-600 transition-colors text-sm mb-1">{{ item.name }}</div>
+                        <div class="text-xs text-slate-500 group-hover:text-slate-600 transition-colors leading-relaxed">{{ item.description }}</div>
+                      </div>
+                    </div>
+                  </RouterLink>
+                </div>
+              </div>
+
+              <!-- Featured Card -->
+              <div class="col-span-3" v-if="currentMegaMenu.featured">
+                <div class="h-full rounded-2xl p-6 relative overflow-hidden group" :class="currentMegaMenu.featured.color">
+                  <div class="relative z-10">
+                    <div class="text-white/80 text-xs font-bold uppercase tracking-wider mb-2">Featured</div>
+                    <h3 class="text-white font-bold text-lg mb-2">{{ currentMegaMenu.featured.title }}</h3>
+                    <p class="text-white/90 text-sm leading-relaxed mb-4">{{ currentMegaMenu.featured.description }}</p>
                   </div>
-                  <div>
-                    <div class="font-bold text-slate-900 group-hover:text-primary-600 transition-colors">{{ pillar.name }}</div>
-                    <div class="text-sm text-slate-500 group-hover:text-slate-600 transition-colors">{{ pillar.description }}</div>
-                  </div>
-                </RouterLink>
+                  <!-- Decorative circles -->
+                  <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-12 -mb-12 blur-xl"></div>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Core Features (Right Column) -->
-            <div class="col-span-5 border-l border-slate-100 pl-8">
-              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">More features</h3>
-              <div class="space-y-2">
-                <RouterLink 
-                  v-for="feature in productMenu.features" 
-                  :key="feature.name" 
-                  :to="feature.href"
-                  class="group flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition-colors"
-                >
-                  <span class="text-sm font-medium text-slate-700 group-hover:text-primary-600 transition-colors">{{ feature.name }}</span>
-                  <ArrowRight class="w-4 h-4 text-slate-300 group-hover:text-primary-400 transition-colors opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 duration-200" />
-                </RouterLink>
+            <!-- Bottom Bar -->
+            <div v-if="currentMegaMenu.bottomBar" class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">{{ currentMegaMenu.bottomBar.label }}</span>
+                <span class="text-sm text-slate-600">{{ currentMegaMenu.bottomBar.text }}</span>
               </div>
+              <RouterLink :to="currentMegaMenu.bottomBar.href" class="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1 group">
+                Read more <ArrowRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </RouterLink>
             </div>
           </div>
-
-          <!-- For Psychologists Menu -->
-          <div v-if="activeDropdown === 'For psychologists'" class="grid grid-cols-3 gap-8">
-            <RouterLink 
-              v-for="item in psychologistsMenu" 
-              :key="item.name"
-              :to="item.href"
-              class="group block p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
-            >
-              <div class="text-base font-bold text-slate-900 group-hover:text-primary-600 mb-1">{{ item.name }}</div>
-              <div class="text-sm text-slate-500">{{ item.description }}</div>
-            </RouterLink>
-          </div>
-
-          <!-- For Clinics Menu -->
-          <div v-if="activeDropdown === 'For clinics'" class="grid grid-cols-3 gap-8">
-             <RouterLink 
-              v-for="item in clinicsMenu" 
-              :key="item.name"
-              :to="item.href"
-              class="group block p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
-            >
-              <div class="text-base font-bold text-slate-900 group-hover:text-primary-600 mb-1">{{ item.name }}</div>
-              <div class="text-sm text-slate-500">{{ item.description }}</div>
-            </RouterLink>
-          </div>
-
-          <!-- For Patients Menu -->
-          <div v-if="activeDropdown === 'For patients'" class="grid grid-cols-3 gap-8">
-             <RouterLink 
-              v-for="item in patientsMenu" 
-              :key="item.name"
-              :to="item.href"
-              class="group block p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
-            >
-              <div class="text-base font-bold text-slate-900 group-hover:text-primary-600 mb-1">{{ item.name }}</div>
-              <div class="text-sm text-slate-500">{{ item.description }}</div>
-            </RouterLink>
-          </div>
-
-          <!-- Pricing Menu -->
-          <div v-if="activeDropdown === 'Pricing'" class="grid grid-cols-4 gap-6">
-             <RouterLink 
-              v-for="item in pricingMenu" 
-              :key="item.name"
-              :to="item.href"
-              class="group block p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 text-center"
-            >
-              <div class="text-base font-bold text-slate-900 group-hover:text-primary-600 mb-1">{{ item.name }}</div>
-              <div class="text-sm text-slate-500">{{ item.description }}</div>
-            </RouterLink>
-          </div>
-
-          <!-- Resources Menu -->
-          <div v-if="activeDropdown === 'Resources'" class="grid grid-cols-5 gap-4">
-            <RouterLink 
-              v-for="item in resourcesMenu" 
-              :key="item.name"
-              :to="item.href"
-              class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors" :class="item.color">
-                <component :is="item.icon" class="w-5 h-5" />
-              </div>
-              <div class="text-sm font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">{{ item.name }}</div>
-            </RouterLink>
-          </div>
-
         </div>
       </div>
     </Transition>
@@ -295,35 +363,102 @@ const resourcesMenu = [
       <div v-if="isMenuOpen" class="absolute top-full left-0 w-full bg-white border-b border-slate-100 shadow-xl lg:hidden flex flex-col p-4 space-y-4 max-h-[80vh] overflow-y-auto">
         <nav class="flex flex-col space-y-2">
           <template v-for="item in navItems" :key="item.name">
+            <!-- Product Mobile -->
             <div v-if="item.name === 'Product'" class="space-y-2">
               <div class="font-bold text-slate-900 px-2 py-2">{{ item.name }}</div>
               <div class="pl-4 space-y-3 border-l-2 border-slate-100 ml-2">
-                <!-- Pillars -->
-                <RouterLink 
-                  v-for="pillar in productMenu.pillars" 
-                  :key="pillar.name"
-                  :to="pillar.href"
-                  @click="isMenuOpen = false"
-                  class="block"
-                >
-                  <div class="text-sm font-bold text-slate-900">{{ pillar.name }}</div>
-                  <div class="text-xs text-slate-500">{{ pillar.description }}</div>
-                </RouterLink>
-                <!-- Features -->
-                 <div class="pt-2">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Features</div>
-                    <RouterLink 
-                      v-for="feature in productMenu.features" 
-                      :key="feature.name"
-                      :to="feature.href"
-                      @click="isMenuOpen = false"
-                      class="block text-sm text-slate-600 py-1"
-                    >
-                      {{ feature.name }}
-                    </RouterLink>
-                 </div>
+                <template v-for="col in productMenu.columns" :key="col.title">
+                  <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{{ col.title }}</div>
+                  <RouterLink 
+                    v-for="subItem in col.items" 
+                    :key="subItem.name"
+                    :to="subItem.href"
+                    @click="isMenuOpen = false"
+                    class="block"
+                  >
+                    <div class="text-sm font-bold text-slate-900">{{ subItem.name }}</div>
+                    <div class="text-xs text-slate-500">{{ subItem.description }}</div>
+                  </RouterLink>
+                </template>
               </div>
             </div>
+            <!-- Psychologists Mobile -->
+            <div v-else-if="item.name === 'For psychologists'" class="space-y-2">
+              <div class="font-bold text-slate-900 px-2 py-2">{{ item.name }}</div>
+              <div class="pl-4 space-y-3 border-l-2 border-slate-100 ml-2">
+                <template v-for="col in psychologistsMenu.columns" :key="col.title">
+                  <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{{ col.title }}</div>
+                  <RouterLink 
+                    v-for="subItem in col.items" 
+                    :key="subItem.name"
+                    :to="subItem.href"
+                    @click="isMenuOpen = false"
+                    class="block"
+                  >
+                    <div class="text-sm font-bold text-slate-900">{{ subItem.name }}</div>
+                    <div class="text-xs text-slate-500">{{ subItem.description }}</div>
+                  </RouterLink>
+                </template>
+              </div>
+            </div>
+            <!-- For Clinics Mobile -->
+            <div v-else-if="item.name === 'For clinics'" class="space-y-2">
+              <div class="font-bold text-slate-900 px-2 py-2">{{ item.name }}</div>
+              <div class="pl-4 space-y-3 border-l-2 border-slate-100 ml-2">
+                <template v-for="col in clinicsMenu.columns" :key="col.title">
+                  <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{{ col.title }}</div>
+                  <RouterLink 
+                    v-for="subItem in col.items" 
+                    :key="subItem.name"
+                    :to="subItem.href"
+                    @click="isMenuOpen = false"
+                    class="block"
+                  >
+                    <div class="text-sm font-bold text-slate-900">{{ subItem.name }}</div>
+                    <div class="text-xs text-slate-500">{{ subItem.description }}</div>
+                  </RouterLink>
+                </template>
+              </div>
+            </div>
+            <!-- For Patients Mobile -->
+            <div v-else-if="item.name === 'For patients'" class="space-y-2">
+              <div class="font-bold text-slate-900 px-2 py-2">{{ item.name }}</div>
+              <div class="pl-4 space-y-3 border-l-2 border-slate-100 ml-2">
+                <template v-for="col in patientsMenu.columns" :key="col.title">
+                  <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{{ col.title }}</div>
+                  <RouterLink 
+                    v-for="subItem in col.items" 
+                    :key="subItem.name"
+                    :to="subItem.href"
+                    @click="isMenuOpen = false"
+                    class="block"
+                  >
+                    <div class="text-sm font-bold text-slate-900">{{ subItem.name }}</div>
+                    <div class="text-xs text-slate-500">{{ subItem.description }}</div>
+                  </RouterLink>
+                </template>
+              </div>
+            </div>
+            <!-- Resources Mobile -->
+            <div v-else-if="item.name === 'Resources'" class="space-y-2">
+              <div class="font-bold text-slate-900 px-2 py-2">{{ item.name }}</div>
+              <div class="pl-4 space-y-3 border-l-2 border-slate-100 ml-2">
+                <template v-for="col in resourcesMenu.columns" :key="col.title">
+                  <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{{ col.title }}</div>
+                  <RouterLink 
+                    v-for="subItem in col.items" 
+                    :key="subItem.name"
+                    :to="subItem.href"
+                    @click="isMenuOpen = false"
+                    class="block"
+                  >
+                    <div class="text-sm font-bold text-slate-900">{{ subItem.name }}</div>
+                    <div class="text-xs text-slate-500">{{ subItem.description }}</div>
+                  </RouterLink>
+                </template>
+              </div>
+            </div>
+            <!-- Other Links -->
             <div v-else class="space-y-2">
               <RouterLink 
                 :to="item.href"
@@ -339,8 +474,8 @@ const resourcesMenu = [
           <RouterLink to="/login" @click="isMenuOpen = false" class="w-full text-center py-2 text-sm font-medium text-slate-500 hover:text-primary-600">
             Sign in
           </RouterLink>
-          <RouterLink to="/login" @click="isMenuOpen = false" class="w-full">
-            <Button block class="rounded-full bg-primary-500 hover:bg-primary-600">Get a demo</Button>
+          <RouterLink to="/login" @click="isMenuOpen = false" class="w-full flex justify-center">
+            <GlowingButton text="Get a demo" />
           </RouterLink>
         </div>
       </div>

@@ -18,7 +18,7 @@ import CtaSection from '@/components/public/CtaSection.vue'
         </div>
         <div class="bg-white p-8 rounded-2xl border border-slate-200">
           <h2 class="text-2xl font-bold mb-4">AI Assistant</h2>
-          <p class="text-text-muted">How Mia helps you write notes...</p>
+          <p class="text-text-muted">How NoeIA helps you write notes...</p>
         </div>
       </div>
     </section>

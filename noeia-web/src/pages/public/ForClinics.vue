@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Button from '@/components/ui/Button.vue'
-import { Calendar, Users, Building, GitMerge, BarChart3, ArrowRight, CheckCircle2 } from 'lucide-vue-next'
+import { Calendar, Users, Building, GitMerge, BarChart3, ArrowRight, CheckCircle2, Sparkles, Smartphone } from 'lucide-vue-next'
 
 const isVisible = ref(false)
 
@@ -191,6 +191,129 @@ const features = [
           </div>
 
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 1: Why Noeia for clinics -->
+  <div id="why-noeia-clinics" class="max-w-6xl mx-auto px-4 py-20 space-y-24 border-t border-white/10 pt-16">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <!-- Left Copy -->
+      <div 
+        class="transition-all duration-700 ease-out transform"
+        :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+        style="transition-delay: 600ms;"
+      >
+        <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Why Noeia for clinics and group practices</h2>
+        <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+          You coordinate multiple professionals, rooms, and patients every day. Spreadsheets and generic booking tools don’t understand that reality. Noeia gives you a shared workspace where schedules, rooms, documentation, and billing are all part of the same system.
+        </p>
+        <ul class="space-y-4">
+          <li class="flex items-start gap-3">
+            <CheckCircle2 class="w-5 h-5 text-primary-600 mt-1 shrink-0" />
+            <span class="text-slate-700">One calendar, multiple professionals and rooms.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <CheckCircle2 class="w-5 h-5 text-primary-600 mt-1 shrink-0" />
+            <span class="text-slate-700">Clear ownership for each patient and session.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <CheckCircle2 class="w-5 h-5 text-primary-600 mt-1 shrink-0" />
+            <span class="text-slate-700">Billing and reporting by doctor, not just by clinic.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <CheckCircle2 class="w-5 h-5 text-primary-600 mt-1 shrink-0" />
+            <span class="text-slate-700">Apps and portals for professionals and patients.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right Visual -->
+      <div 
+        class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group shadow-sm"
+        :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+        style="transition-delay: 700ms;"
+      >
+        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-sm font-bold text-slate-900">Today · Clinic overview</span>
+          </div>
+          <div class="text-xs text-slate-500">Live Dashboard</div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="text-2xl font-bold text-slate-900 mb-1">24</div>
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">Sessions today</div>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="text-2xl font-bold text-slate-900 mb-1">8</div>
+            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">Active professionals</div>
+          </div>
+          <div class="col-span-2 p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+            <div>
+              <div class="text-2xl font-bold text-slate-900 mb-1">3/4</div>
+              <div class="text-xs text-slate-500 font-medium uppercase tracking-wide">Rooms in use</div>
+            </div>
+            <div class="flex gap-1">
+               <div class="w-2 h-8 rounded bg-red-400"></div>
+               <div class="w-2 h-8 rounded bg-red-400"></div>
+               <div class="w-2 h-8 rounded bg-red-400"></div>
+               <div class="w-2 h-8 rounded bg-slate-200"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: The three clinic pillars -->
+    <div 
+      class="transition-all duration-700 ease-out transform"
+      :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'"
+      style="transition-delay: 800ms;"
+    >
+      <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-12 text-center">Three pillars for modern clinics</h2>
+      
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Card 1 -->
+        <RouterLink to="/product/website" class="block group">
+          <div class="h-full bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <Building class="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">Website platform</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">
+              Desktop control center for managers and admins: doctors, rooms, schedules, and billing.
+            </p>
+          </div>
+        </RouterLink>
+
+        <!-- Card 2 -->
+        <RouterLink to="/product/app" class="block group">
+          <div class="h-full bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <Smartphone class="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">Apps for your team and patients</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">
+              Doctors and patients use dedicated apps so everyone sees what they need.
+            </p>
+          </div>
+        </RouterLink>
+
+        <!-- Card 3 -->
+        <RouterLink to="/product/ai" class="block group">
+          <div class="h-full bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <Sparkles class="w-6 h-6 text-pink-600" />
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">NoeIA, the AI assistant</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">
+              Help your professionals write better notes and reports in less time.
+            </p>
+          </div>
+        </RouterLink>
       </div>
     </div>
   </div>

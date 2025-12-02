@@ -26,7 +26,7 @@ function askAI() {
     <div v-if="isOpen" class="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden flex flex-col">
       <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-primary-50 to-white flex items-center gap-2">
         <Bot class="w-5 h-5 text-primary-600" />
-        <span class="font-semibold text-slate-900">Noeia AI Assistant</span>
+        <span class="font-semibold text-slate-900">NoeIA Assistant</span>
       </div>
       
       <div class="p-4 h-64 bg-slate-50 overflow-y-auto flex flex-col gap-3">

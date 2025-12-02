@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Button from '@/components/ui/Button.vue'
-import { Calendar, FileText, Users, Lock, Monitor, ArrowRight, CheckCircle2, Sparkles } from 'lucide-vue-next'
+import { Calendar, Users, Lock, Monitor, ArrowRight, CheckCircle2, Sparkles } from 'lucide-vue-next'
 
 const isVisible = ref(false)
 
@@ -9,6 +9,23 @@ onMounted(() => {
   setTimeout(() => {
     isVisible.value = true
   }, 100)
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('opacity-100', 'translate-y-0')
+        entry.target.classList.remove('opacity-0', 'translate-y-4')
+      }
+    })
+  }, {
+    threshold: 0.1,
+    rootMargin: '50px'
+  })
+
+  document.querySelectorAll('.reveal').forEach((el) => {
+    el.classList.add('transition-all', 'duration-700', 'ease-out', 'opacity-0', 'translate-y-4')
+    observer.observe(el)
+  })
 })
 
 const features = [
@@ -205,4 +222,128 @@ const features = [
       </div>
     </div>
   </div>
+
+  <!-- SECTION 1: Why Noeia -->
+  <div id="why-noeia" class="max-w-6xl mx-auto px-4 py-20 space-y-24">
+    <section class="grid lg:grid-cols-2 gap-16 items-center reveal">
+      <div class="space-y-6">
+        <h2 class="text-3xl font-bold text-slate-900">Why Noeia for individual psychologists</h2>
+        <p class="text-lg text-slate-600 leading-relaxed">
+          You don’t need a clinic-size system with 100 toggles. You need your day, your clients, and your documentation to fit together without friction. Noeia keeps your calendar, records, and AI support in one place so you can stay with your patients, not your admin.
+        </p>
+        <ul class="space-y-4">
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 shrink-0 mt-0.5">
+              <CheckCircle2 class="w-3.5 h-3.5" />
+            </div>
+            <span class="text-slate-600">Calendar that reflects your real sessions, not generic time slots.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 shrink-0 mt-0.5">
+              <CheckCircle2 class="w-3.5 h-3.5" />
+            </div>
+            <span class="text-slate-600">Client histories that stay understandable months later.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 shrink-0 mt-0.5">
+              <CheckCircle2 class="w-3.5 h-3.5" />
+            </div>
+            <span class="text-slate-600">AI that supports your writing without replacing your judgment.</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 shrink-0 mt-0.5">
+              <CheckCircle2 class="w-3.5 h-3.5" />
+            </div>
+            <span class="text-slate-600">Space for patients to stay engaged between sessions.</span>
+          </li>
+        </ul>
+      </div>
+      
+      <!-- Visual Card -->
+      <div class="relative group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-primary-100 to-blue-100 rounded-2xl blur opacity-50 group-hover:opacity-70 transition duration-1000"></div>
+        <div class="relative rounded-2xl bg-white border border-slate-200 p-6 shadow-xl hover:scale-[1.02] transition-all duration-300">
+          <div class="flex gap-6">
+            <!-- Mini Today Column -->
+            <div class="w-1/3 space-y-3 border-r border-slate-100 pr-4">
+              <div class="text-xs font-bold text-slate-400 uppercase">Today</div>
+              <div class="p-2 rounded bg-primary-50 border-l-2 border-primary-500 text-xs">
+                <div class="font-bold text-slate-900">09:00</div>
+                <div class="text-slate-500 truncate">Alex M.</div>
+              </div>
+              <div class="p-2 rounded bg-white border border-slate-200 text-xs opacity-60">
+                <div class="font-bold text-slate-900">10:30</div>
+                <div class="text-slate-500 truncate">Sarah J.</div>
+              </div>
+              <div class="p-2 rounded bg-white border border-slate-200 text-xs opacity-60">
+                <div class="font-bold text-slate-900">14:00</div>
+                <div class="text-slate-500 truncate">Team</div>
+              </div>
+            </div>
+            <!-- Note Panel -->
+            <div class="flex-1 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-bold text-slate-900">Session Notes</div>
+                <Sparkles class="w-3 h-3 text-primary-500" />
+              </div>
+              <div class="space-y-2">
+                <div class="h-2 bg-slate-100 rounded w-full"></div>
+                <div class="h-2 bg-slate-100 rounded w-5/6"></div>
+                <div class="h-2 bg-slate-100 rounded w-4/6"></div>
+              </div>
+              <div class="pt-4 mt-4 border-t border-slate-50">
+                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Plan</div>
+                <div class="flex gap-2">
+                  <span class="px-2 py-1 bg-slate-50 text-slate-600 text-[10px] rounded border border-slate-100">Homework</span>
+                  <span class="px-2 py-1 bg-slate-50 text-slate-600 text-[10px] rounded border border-slate-100">Schedule</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Pillars -->
+    <section class="reveal border-t border-slate-100 pt-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-slate-900 mb-4">What you get as an individual professional</h2>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <RouterLink to="/product/website" class="group bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-primary-200 hover:scale-105 transition-all duration-200">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+            <Monitor class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Website platform</h3>
+          <p class="text-slate-500">Plan your week, review your caseload, write notes.</p>
+        </RouterLink>
+
+        <!-- Card 2 -->
+        <RouterLink to="/product/app" class="group bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-purple-200 hover:scale-105 transition-all duration-200">
+          <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-6 group-hover:scale-110 transition-transform">
+            <Users class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Doctor app</h3>
+          <p class="text-slate-500">Keep today’s sessions and notes in your pocket.</p>
+        </RouterLink>
+
+        <!-- Card 3 -->
+        <RouterLink to="/product/ai" class="group bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-emerald-200 hover:scale-105 transition-all duration-200">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-6 group-hover:scale-110 transition-transform">
+            <Sparkles class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">NoeIA, the AI assistant</h3>
+          <p class="text-slate-500">Turn rough notes into summaries and drafts.</p>
+        </RouterLink>
+      </div>
+    </section>
+  </div>
 </template>
+
+<style scoped>
+.reveal {
+  will-change: opacity, transform;
+}
+</style>

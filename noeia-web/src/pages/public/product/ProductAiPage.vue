@@ -48,12 +48,12 @@ useScrollReveal()
         </div>
         
         <h1 class="text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6 text-slate-900">
-          Mia, your <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">AI assistant</span> <br>
+          NoeIA, your <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">AI assistant</span> <br>
           for therapeutic work
         </h1>
         
         <p class="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-12">
-          Helps write, never decides for you. Mia uses context to draft summaries, leaving you in full control.
+          Helps write, never decides for you. NoeIA uses context to draft summaries, leaving you in full control.
         </p>
 
         <div class="flex justify-center">
@@ -88,7 +88,7 @@ useScrollReveal()
                 <div class="absolute top-0 right-0 p-2">
                   <Sparkles class="w-4 h-4 text-emerald-600" />
                 </div>
-                <div class="text-xs font-bold text-emerald-600 uppercase mb-3">Mia's Draft</div>
+                <div class="text-xs font-bold text-emerald-600 uppercase mb-3">NoeIA's Draft</div>
                 <div class="text-sm text-slate-700 space-y-4">
                   <div>
                     <span class="font-bold text-emerald-700 text-xs uppercase block mb-1">Presenting Problem</span>
@@ -132,7 +132,7 @@ useScrollReveal()
               <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
                 <Check class="w-3.5 h-3.5" />
               </div>
-              <span class="text-slate-700">Mia proposes a structured summary based on your template.</span>
+              <span class="text-slate-700">NoeIA proposes a structured summary based on your template.</span>
             </li>
             <li class="flex items-start gap-3">
               <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
@@ -153,7 +153,7 @@ useScrollReveal()
               <Activity class="w-5 h-5" />
             </div>
             <h3 class="text-lg font-bold text-slate-900 mb-2">What changed?</h3>
-            <p class="text-slate-500 text-sm">Mia highlights changes in symptoms or life events since the last visit.</p>
+            <p class="text-slate-500 text-sm">NoeIA highlights changes in symptoms or life events since the last visit.</p>
           </div>
           <div class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-all hover:-translate-y-1">
             <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 mb-4 mx-auto">
@@ -206,7 +206,7 @@ useScrollReveal()
                </div>
                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 font-bold text-lg">
                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                 <span>With Mia: 3 mins/session</span>
+                 <span>With NoeIA: 3 mins/session</span>
                </div>
              </div>
            </div>
@@ -220,7 +220,7 @@ useScrollReveal()
         </div>
         <h2 class="text-3xl font-bold text-slate-900 mb-6">You stay in control</h2>
         <div class="space-y-4 text-lg text-slate-600">
-          <p>Mia never replaces your clinical thinking.</p>
+          <p>NoeIA never replaces your clinical thinking.</p>
           <p>You decide what goes into the record.</p>
           <p>All drafts are visible, editable, and require your approval.</p>
         </div>
