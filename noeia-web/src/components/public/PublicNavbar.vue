@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import GlowingButton from '@/components/ui/GlowingButton.vue'
+import Button from '@/components/ui/Button.vue'
 import { Menu, X, ChevronDown, Sparkles, Smartphone, Building, ArrowRight, Calendar, CheckCircle2, Rocket, User, Users, BookOpen, FileText, Activity, HelpCircle, History, Mail } from 'lucide-vue-next'
 
 const isMenuOpen = ref(false)
@@ -259,7 +259,9 @@ const currentMegaMenu = computed(() => {
           Sign in
         </RouterLink>
         <RouterLink to="/login">
-          <GlowingButton text="Get a demo" />
+          <Button class="rounded-full px-6 bg-primary-500 hover:bg-primary-600 shadow-lg hover:shadow-primary-500/25 transition-all">
+            Get a demo <ArrowRight class="w-4 h-4 ml-2" />
+          </Button>
         </RouterLink>
       </div>
 
@@ -475,7 +477,9 @@ const currentMegaMenu = computed(() => {
             Sign in
           </RouterLink>
           <RouterLink to="/login" @click="isMenuOpen = false" class="w-full flex justify-center">
-            <GlowingButton text="Get a demo" />
+            <Button class="w-full rounded-full px-6 bg-primary-500 hover:bg-primary-600 shadow-lg hover:shadow-primary-500/25 transition-all">
+              Get a demo <ArrowRight class="w-4 h-4 ml-2" />
+            </Button>
           </RouterLink>
         </div>
       </div>

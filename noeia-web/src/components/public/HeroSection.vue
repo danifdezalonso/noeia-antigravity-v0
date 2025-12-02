@@ -49,7 +49,7 @@ onMounted(() => {
           </h1>
           
           <p class="text-lg lg:text-xl text-text-muted mb-8 leading-relaxed max-w-lg">
-            Noeia centralizes calendar, notes, and client communication so psychologists can spend more time in session—and less time in their inbox.
+            Noeia unifies your calendar, billing, and clinical records, with an AI assistant that transforms post-session notes into clear summaries, follow-ups, and reports. Spend your time on therapy, growth, and outcomes — not repetitive admin.
           </p>
           
           <div class="flex flex-col sm:flex-row gap-4 mb-8">
