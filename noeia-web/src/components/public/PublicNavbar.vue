@@ -22,8 +22,8 @@ onUnmounted(() => {
 
 const navItems = [
   { name: 'Product', href: '/product', hasDropdown: true },
-  { name: 'For psychologists', href: '/psychologists' },
-  { name: 'For clinics', href: '/clinics' },
+  { name: 'For psychologists', href: '/for-psychologists' },
+  { name: 'For clinics', href: '/for-clinics' },
   { name: 'Pricing', href: '/pricing' },
   { name: 'Resources', href: '/resources' },
 ]
@@ -80,7 +80,7 @@ const platformLinks = [
         <RouterLink to="/login" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">
           Sign in
         </RouterLink>
-        <RouterLink to="/demo">
+        <RouterLink to="/login">
           <Button size="sm" class="rounded-full px-6 bg-primary-500 hover:bg-primary-600 text-white shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5">
             Get a demo
           </Button>
@@ -227,7 +227,7 @@ const platformLinks = [
           <RouterLink to="/login" @click="isMenuOpen = false" class="w-full text-center py-2 text-sm font-medium text-slate-500 hover:text-primary-600">
             Sign in
           </RouterLink>
-          <RouterLink to="/demo" @click="isMenuOpen = false" class="w-full">
+          <RouterLink to="/login" @click="isMenuOpen = false" class="w-full">
             <Button block class="rounded-full bg-primary-500 hover:bg-primary-600">Get a demo</Button>
           </RouterLink>
         </div>

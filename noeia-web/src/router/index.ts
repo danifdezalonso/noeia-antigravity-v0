@@ -35,6 +35,18 @@ const router = createRouter({
             meta: { layout: 'public' },
         },
         {
+            path: '/for-psychologists',
+            name: 'for-psychologists',
+            component: () => import('@/pages/public/ForPsychologists.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/for-clinics',
+            name: 'for-clinics',
+            component: () => import('@/pages/public/ForClinics.vue'),
+            meta: { layout: 'public' },
+        },
+        {
             path: '/login',
             name: 'login',
             component: () => import('@/pages/public/Login.vue'),

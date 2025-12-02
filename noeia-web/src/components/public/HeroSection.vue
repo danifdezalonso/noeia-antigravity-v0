@@ -43,7 +43,7 @@ onMounted(() => {
           </p>
           
           <div class="flex flex-col sm:flex-row gap-4 mb-8">
-            <RouterLink to="/demo">
+            <RouterLink to="/login">
               <Button size="lg" class="w-full sm:w-auto rounded-full px-8 bg-primary-500 hover:bg-primary-600 shadow-lg hover:shadow-primary-500/25 transition-all">
                 Book a live demo
                 <ArrowRight class="w-4 h-4 ml-2" />

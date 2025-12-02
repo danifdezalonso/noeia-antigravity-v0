@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import HeroSection from '@/components/public/HeroSection.vue'
-import SocialProof from '@/components/public/SocialProof.vue'
-import FeatureGrid from '@/components/public/FeatureGrid.vue'
+import BentoGrid from '@/components/public/BentoGrid.vue'
 import HowItWorks from '@/components/public/HowItWorks.vue'
 import ProductStrip from '@/components/public/ProductStrip.vue'
 import PricingPreview from '@/components/public/PricingPreview.vue'
@@ -12,8 +11,7 @@ import CtaSection from '@/components/public/CtaSection.vue'
 <template>
   <div class="overflow-hidden">
     <HeroSection />
-    <SocialProof />
-    <FeatureGrid />
+    <BentoGrid />
     <HowItWorks />
     <ProductStrip />
     <PricingPreview />

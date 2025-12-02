@@ -18,7 +18,7 @@ import Button from '@/components/ui/Button.vue'
       </p>
       
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <RouterLink to="/demo">
+        <RouterLink to="/login">
           <Button size="lg" class="w-full sm:w-auto rounded-full px-8 bg-white text-primary-900 hover:bg-slate-100 border-none shadow-lg">
             Book a demo
           </Button>
