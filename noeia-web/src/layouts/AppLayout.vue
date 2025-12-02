@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
+import { storeToRefs } from 'pinia'
 
 import { 
   LayoutDashboard, 
@@ -15,7 +17,8 @@ import {
   ChevronRight,
   Plus,
   Search,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-vue-next'
 
 import OrgSelector from '@/components/OrgSelector.vue'
@@ -28,6 +31,9 @@ import CreateClientModal from '@/components/CreateClientModal.vue'
 
 const route = useRoute()
 const store = useAppStore()
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
+
 const isSidebarOpen = ref(false)
 const isFeedbackOpen = ref(false)
 const isHelpOpen = ref(false)
@@ -38,7 +44,7 @@ onMounted(() => {
   store.fetchAll()
 })
 
-const navigation = [
+const defaultNavigation = [
   { name: 'Dashboard', href: '/app', icon: LayoutDashboard },
   { name: 'Calendar', href: '/app/calendar', icon: Calendar },
   { name: 'Sessions', href: '/app/sessions', icon: Clock },
@@ -47,6 +53,22 @@ const navigation = [
   { name: 'IA', href: '/app/ai', icon: Sparkles },
   { name: 'Settings', href: '/app/settings', icon: Settings },
 ]
+
+const clientNavigation = [
+  { name: 'Dashboard', href: '/app', icon: LayoutDashboard },
+  { name: 'Calendar', href: '/app/calendar', icon: Calendar },
+  { name: 'Messages', href: '/app/messages', icon: MessageSquare },
+  { name: 'Payments', href: '/app/billing', icon: CreditCard },
+  { name: 'Settings', href: '/app/settings', icon: Settings },
+]
+
+const navigation = computed(() => {
+  const role = user.value?.app_metadata?.role
+  if (role === 'client') {
+    return clientNavigation
+  }
+  return defaultNavigation
+})
 
 function isActive(path: string) {
   return route.path === path

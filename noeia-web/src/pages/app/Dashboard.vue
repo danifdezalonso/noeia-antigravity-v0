@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
-import { Users, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Clock } from 'lucide-vue-next'
+import { Users, Calendar, TrendingUp, ArrowUpRight, ArrowDownRight, Plus, Clock, CreditCard, MessageSquare } from 'lucide-vue-next'
 import CompleteSessionModal from '@/components/CompleteSessionModal.vue'
 
 import { useAuthStore } from '@/stores/auth'
@@ -140,8 +140,8 @@ async function handleCompleteSession(data: any) {
       </Button>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Stats Grid (Doctor/Org) -->
+    <div v-if="userRole !== 'client'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div v-for="stat in stats" :key="stat.title" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between mb-4">
           <div class="p-2 bg-slate-50 rounded-lg">
@@ -160,7 +160,89 @@ async function handleCompleteSession(data: any) {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Client Dashboard -->
+    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Left Column: Upcoming & Payments -->
+      <div class="lg:col-span-2 space-y-8">
+        
+        <!-- Upcoming Session -->
+        <Card title="Upcoming Session" description="Your next scheduled appointment">
+          <div v-if="!nextSession" class="text-center py-8 text-slate-500 text-sm">
+            No upcoming sessions scheduled.
+          </div>
+          <div v-else class="flex items-start gap-4 p-4 bg-primary-50/50 rounded-xl border border-primary-100">
+             <div class="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-lg shrink-0">
+                <Clock class="w-6 h-6" />
+             </div>
+             <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                    <h3 class="text-lg font-semibold text-slate-900">{{ nextSession.title || 'Therapy Session' }}</h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
+                        Confirmed
+                    </span>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-slate-600 mb-3">
+                    <div class="flex items-center gap-1.5">
+                        <Calendar class="w-4 h-4 text-slate-400" />
+                        {{ new Date(nextSession.start).toLocaleDateString() }}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <Clock class="w-4 h-4 text-slate-400" />
+                        {{ new Date(nextSession.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+                    </div>
+                </div>
+                <Button size="sm" class="w-full sm:w-auto">Join Session</Button>
+             </div>
+          </div>
+        </Card>
+
+        <!-- Missing Payments -->
+        <Card title="Pending Payments" description="Outstanding invoices requiring attention">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-4 bg-amber-50 border border-amber-100 rounded-xl">
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-amber-100 rounded-lg text-amber-700">
+                  <CreditCard class="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-900">Session #1024</h4>
+                  <p class="text-xs text-slate-500">Due: Today</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-bold text-slate-900">€100.00</span>
+                <Button size="sm" variant="outline" class="bg-white hover:bg-amber-50 border-amber-200 text-amber-700">Pay Now</Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+      </div>
+
+      <!-- Right Column: Professional Profile -->
+      <div>
+        <Card title="Your Professional" description="Contact information">
+          <div class="flex flex-col items-center text-center p-4">
+            <div class="w-20 h-20 bg-slate-100 rounded-full mb-4 overflow-hidden">
+               <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" alt="Dr. Sarah" class="w-full h-full object-cover" />
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Dr. Sarah Connor</h3>
+            <p class="text-sm text-slate-500 mb-4">Clinical Psychologist</p>
+            
+            <div class="w-full space-y-2">
+              <Button variant="outline" class="w-full justify-center">
+                <MessageSquare class="w-4 h-4 mr-2" /> Message
+              </Button>
+              <Button variant="ghost" class="w-full justify-center text-slate-500">
+                View Profile
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+
+    <div v-if="userRole !== 'client'" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Main Column -->
       <div class="lg:col-span-2 space-y-8">
         

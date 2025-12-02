@@ -76,6 +76,18 @@ const router = createRouter({
             component: () => import('@/pages/app/Settings.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
+        {
+            path: '/app/messages',
+            name: 'messages',
+            component: () => import('@/pages/app/Messages.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/onboarding',
+            name: 'onboarding',
+            component: () => import('@/pages/app/ClientOnboarding.vue'),
+            meta: { requiresAuth: true, layout: 'public' }, // Use public layout or none for full screen
+        },
     ],
 })
 
