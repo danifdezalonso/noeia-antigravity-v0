@@ -19,7 +19,55 @@ const router = createRouter({
         {
             path: '/product',
             name: 'product',
-            component: () => import('@/pages/public/Product.vue'),
+            component: () => import('@/pages/public/product/ProductOverviewPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/website',
+            name: 'product-website',
+            component: () => import('@/pages/public/product/ProductWebsitePage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/app',
+            name: 'product-app',
+            component: () => import('@/pages/public/product/ProductAppPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/ai',
+            name: 'product-ai',
+            component: () => import('@/pages/public/product/ProductAiPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/calendar',
+            name: 'product-calendar',
+            component: () => import('@/pages/public/product/ProductCalendarPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/records',
+            name: 'product-records',
+            component: () => import('@/pages/public/product/ProductRecordsPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/offices',
+            name: 'product-offices',
+            component: () => import('@/pages/public/product/ProductOfficesPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/admin',
+            name: 'product-admin',
+            component: () => import('@/pages/public/product/ProductAdminPage.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/product/security',
+            name: 'product-security',
+            component: () => import('@/pages/public/product/ProductSecurityPage.vue'),
             meta: { layout: 'public' },
         },
         {
