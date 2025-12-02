@@ -39,7 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User
-        router.push('/app')
+        router.push('/app/doctor-onboarding')
     }
 
     function loginAsOrganization() {
@@ -62,7 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User
-        router.push('/app')
+        router.push('/app/organization-onboarding')
     }
 
     function loginAsClient() {

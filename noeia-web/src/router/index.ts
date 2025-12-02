@@ -88,6 +88,18 @@ const router = createRouter({
             component: () => import('@/pages/app/ClientOnboarding.vue'),
             meta: { requiresAuth: true, layout: 'public' }, // Use public layout or none for full screen
         },
+        {
+            path: '/app/doctor-onboarding',
+            name: 'doctor-onboarding',
+            component: () => import('@/pages/app/DoctorOnboarding.vue'),
+            meta: { requiresAuth: true, layout: 'public' },
+        },
+        {
+            path: '/app/organization-onboarding',
+            name: 'organization-onboarding',
+            component: () => import('@/pages/app/OrganizationOnboarding.vue'),
+            meta: { requiresAuth: true, layout: 'public' },
+        },
     ],
 })
 
