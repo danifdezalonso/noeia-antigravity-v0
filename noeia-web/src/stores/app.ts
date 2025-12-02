@@ -257,12 +257,14 @@ export const useAppStore = defineStore('app', () => {
 
             // Track Event
             const authStore = useAuthStore()
+            console.log('About to capture patient_added event')
             posthog.capture('patient_added', {
                 doctor_id: authStore.user?.id, // Assuming current user is the doctor
                 patient_id: newClient.id,
                 added_by: authStore.user?.id,
                 user_type: 'doctor'
             })
+            console.log('Event captured: patient_added')
 
             return newClient.id
         }
@@ -324,6 +326,7 @@ export const useAppStore = defineStore('app', () => {
 
             // Track Event
             const authStore = useAuthStore()
+            console.log('About to capture session_created event')
             posthog.capture('session_created', {
                 doctor_id: authStore.user?.id,
                 patient_id: newSession.clientId,
@@ -332,6 +335,7 @@ export const useAppStore = defineStore('app', () => {
                 created_by: authStore.user?.id,
                 user_type: 'doctor'
             })
+            console.log('Event captured: session_created')
 
             return newSession.id
         }

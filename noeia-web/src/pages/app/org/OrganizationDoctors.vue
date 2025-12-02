@@ -132,12 +132,14 @@ function saveDoctor() {
     doctors.value.push(newDoctor)
 
     // Track Event
+    console.log('About to capture doctor_added event')
     posthog.capture('doctor_added', {
       organization_id: authStore.user?.id, // Assuming current user is the org
       doctor_id: newDoctor.id,
       added_by: authStore.user?.id,
       user_type: 'organization'
     })
+    console.log('Event captured: doctor_added')
   }
   isModalOpen.value = false
 }

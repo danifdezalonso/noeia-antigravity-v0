@@ -18,6 +18,9 @@ if (posthogKey) {
     posthog.init(posthogKey, {
         api_host: posthogHost || 'https://us.i.posthog.com',
         person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+        loaded: (_posthog) => {
+            console.log('PostHog loaded successfully')
+        }
     })
 
     // Track page views
