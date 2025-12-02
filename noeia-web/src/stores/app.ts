@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/supabase'
+import posthog from 'posthog-js'
+import { useAuthStore } from '@/stores/auth'
 
 // --- Interfaces (Frontend) ---
 
@@ -249,6 +251,16 @@ export const useAppStore = defineStore('app', () => {
                 avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.name}`
             }
             clients.value.push(newClient)
+
+            // Track Event
+            const authStore = useAuthStore()
+            posthog.capture('patient_added', {
+                doctor_id: authStore.user?.id, // Assuming current user is the doctor
+                patient_id: newClient.id,
+                added_by: authStore.user?.id,
+                user_type: 'doctor'
+            })
+
             return newClient.id
         }
     }
@@ -306,6 +318,18 @@ export const useAppStore = defineStore('app', () => {
                 isPaid: session.isPaid
             }
             sessions.value.push(newSession)
+
+            // Track Event
+            const authStore = useAuthStore()
+            posthog.capture('session_created', {
+                doctor_id: authStore.user?.id,
+                patient_id: newSession.clientId,
+                session_id: newSession.id,
+                session_type: newSession.type || 'therapy',
+                created_by: authStore.user?.id,
+                user_type: 'doctor'
+            })
+
             return newSession.id
         }
     }

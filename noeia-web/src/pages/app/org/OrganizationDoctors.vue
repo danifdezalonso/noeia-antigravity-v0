@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import { Search, Plus, MoreHorizontal, Mail, Phone, X, User } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
+import posthog from 'posthog-js'
+import { useAuthStore } from '@/stores/auth'
 
 // Mock Data
 const doctors = ref([
@@ -114,16 +116,27 @@ function openEditModal(doctor: any) {
 }
 
 function saveDoctor() {
+  const authStore = useAuthStore()
+  
   if (isEditing.value) {
     const index = doctors.value.findIndex(d => d.id === currentDoctor.value.id)
     if (index !== -1) {
       doctors.value[index] = { ...currentDoctor.value }
     }
   } else {
-    doctors.value.push({
+    const newDoctor = {
       ...currentDoctor.value,
       id: doctors.value.length + 1,
       avatar: `https://i.pravatar.cc/150?u=${Date.now()}`
+    }
+    doctors.value.push(newDoctor)
+
+    // Track Event
+    posthog.capture('doctor_added', {
+      organization_id: authStore.user?.id, // Assuming current user is the org
+      doctor_id: newDoctor.id,
+      added_by: authStore.user?.id,
+      user_type: 'organization'
     })
   }
   isModalOpen.value = false
