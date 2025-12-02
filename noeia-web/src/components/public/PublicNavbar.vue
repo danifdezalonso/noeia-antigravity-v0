@@ -4,6 +4,16 @@ import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import { Menu, X, ChevronDown, Sparkles, Smartphone, Building, ArrowRight, Calendar, CheckCircle2, Rocket, User, Users, BookOpen, FileText, Activity, HelpCircle, History, Mail } from 'lucide-vue-next'
 
+import posthog from 'posthog-js'
+
+const trackCta = (text: string, destination: string) => {
+  posthog.capture('cta_clicked', {
+    cta_location: 'navbar',
+    cta_text: text,
+    cta_destination: destination
+  })
+}
+
 const isMenuOpen = ref(false)
 const isScrolled = ref(false)
 const activeDropdown = ref<string | null>(null)
@@ -55,6 +65,13 @@ const productMenu = {
           description: 'NoeIA, your clinical co-pilot.',
           icon: Sparkles,
           color: 'bg-emerald-100 text-emerald-600'
+        },
+        { 
+          name: 'AI Agents', 
+          href: '/product/agents', 
+          description: 'Automated billing and revenue.',
+          icon: Sparkles,
+          color: 'bg-indigo-100 text-indigo-600'
         },
       ]
     },
@@ -255,10 +272,14 @@ const currentMegaMenu = computed(() => {
 
       <!-- Actions -->
       <div class="hidden lg:flex items-center gap-4 ml-auto">
-        <RouterLink to="/login" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors px-4 py-2">
+        <RouterLink 
+          to="/login" 
+          class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors px-4 py-2"
+          @click="trackCta('Sign in', '/login')"
+        >
           Sign in
         </RouterLink>
-        <RouterLink to="/login">
+        <RouterLink to="/login" @click="trackCta('Get a demo', '/login')">
           <Button class="rounded-full px-6 bg-primary-500 hover:bg-primary-600 shadow-lg hover:shadow-primary-500/25 transition-all">
             Get a demo <ArrowRight class="w-4 h-4 ml-2" />
           </Button>
@@ -473,10 +494,18 @@ const currentMegaMenu = computed(() => {
           </template>
         </nav>
         <div class="flex flex-col gap-3 pt-4 border-t border-slate-100">
-          <RouterLink to="/login" @click="isMenuOpen = false" class="w-full text-center py-2 text-sm font-medium text-slate-500 hover:text-primary-600">
+          <RouterLink 
+            to="/login" 
+            @click="() => { isMenuOpen = false; trackCta('Sign in', '/login') }" 
+            class="w-full text-center py-2 text-sm font-medium text-slate-500 hover:text-primary-600"
+          >
             Sign in
           </RouterLink>
-          <RouterLink to="/login" @click="isMenuOpen = false" class="w-full flex justify-center">
+          <RouterLink 
+            to="/login" 
+            @click="() => { isMenuOpen = false; trackCta('Get a demo', '/login') }" 
+            class="w-full flex justify-center"
+          >
             <Button class="w-full rounded-full px-6 bg-primary-500 hover:bg-primary-600 shadow-lg hover:shadow-primary-500/25 transition-all">
               Get a demo <ArrowRight class="w-4 h-4 ml-2" />
             </Button>

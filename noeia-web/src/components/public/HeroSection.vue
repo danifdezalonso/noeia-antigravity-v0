@@ -4,6 +4,16 @@ import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import { ArrowRight, Check, Calendar, Sparkles, Clock, User, Users, FileText, CreditCard, Settings, BrainCircuit, MessageSquare, Download, Edit2, TrendingUp, CheckCircle2 } from 'lucide-vue-next'
 
+import posthog from 'posthog-js'
+
+const trackCta = (text: string, destination: string) => {
+  posthog.capture('cta_clicked', {
+    cta_location: 'hero',
+    cta_text: text,
+    cta_destination: destination
+  })
+}
+
 const isLoaded = ref(false)
 const activeTab = ref('calendar')
 
@@ -53,13 +63,13 @@ onMounted(() => {
           </p>
           
           <div class="flex flex-col sm:flex-row gap-4 mb-8">
-            <RouterLink to="/login">
+            <RouterLink to="/login" @click="trackCta('Book a live demo', '/login')">
               <Button size="lg" class="w-full sm:w-auto rounded-full px-8 bg-primary-500 hover:bg-primary-600 shadow-lg hover:shadow-primary-500/25 transition-all">
                 Book a live demo
                 <ArrowRight class="w-4 h-4 ml-2" />
               </Button>
             </RouterLink>
-            <RouterLink to="/product">
+            <RouterLink to="/product" @click="trackCta('Explore the product', '/product')">
               <Button variant="outline" size="lg" class="w-full sm:w-auto rounded-full px-8 border-slate-300 hover:bg-slate-50 text-text">
                 Explore the product
               </Button>

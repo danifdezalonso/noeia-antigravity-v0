@@ -4,6 +4,16 @@ import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
 import { Building, Smartphone, Sparkles, Calendar, Users, Shield, ArrowRight, Activity } from 'lucide-vue-next'
 
+import posthog from 'posthog-js'
+
+const trackCta = (text: string, destination: string) => {
+  posthog.capture('cta_clicked', {
+    cta_location: 'product_overview',
+    cta_text: text,
+    cta_destination: destination
+  })
+}
+
 // Animation composable
 const useScrollReveal = () => {
   const observer = ref<IntersectionObserver | null>(null)
@@ -45,12 +55,12 @@ useScrollReveal()
           Noeia unifies the clinical experience. Whether you manage the organization, treat patients, or are the patient yourself—it all happens here.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4 mb-20">
-          <RouterLink to="/login">
+          <RouterLink to="/login" @click="trackCta('Start free trial', '/login')">
             <Button size="lg" class="rounded-full px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 transition-all hover:scale-105">
               Start free trial
             </Button>
           </RouterLink>
-          <RouterLink to="/contact">
+          <RouterLink to="/contact" @click="trackCta('Contact sales', '/contact')">
             <Button variant="outline" size="lg" class="rounded-full px-8 border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
               Contact sales
             </Button>
@@ -372,12 +382,12 @@ useScrollReveal()
       <section class="text-center py-20 bg-slate-50 rounded-3xl border border-slate-200 reveal">
         <h2 class="text-3xl font-bold text-slate-900 mb-6">See the three pillars working together</h2>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <RouterLink to="/login">
+          <RouterLink to="/login" @click="trackCta('Book a live demo', '/login')">
             <Button size="lg" class="rounded-full px-8 bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-200 transition-all hover:scale-105">
               Book a live demo
             </Button>
           </RouterLink>
-          <RouterLink to="/login">
+          <RouterLink to="/login" @click="trackCta('Join the beta', '/login')">
             <Button variant="outline" size="lg" class="rounded-full px-8 border-slate-300 text-slate-700 hover:bg-white">
               Join the beta
             </Button>

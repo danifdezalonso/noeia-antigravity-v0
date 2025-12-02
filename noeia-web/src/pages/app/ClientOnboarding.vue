@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { ChevronLeft, ArrowRight, Shield, User, Smartphone, MapPin, Stethoscope } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
+
+import posthog from 'posthog-js'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -13,6 +15,11 @@ const { user } = storeToRefs(authStore)
 const currentStep = ref(1)
 const totalSteps = 4
 const direction = ref('forward')
+
+// Track start
+onMounted(() => {
+  posthog.capture('onboarding_client_started')
+})
 
 // Form Data
 const form = ref({
@@ -76,6 +83,12 @@ const isStepValid = computed(() => validateStep(currentStep.value))
 
 function nextStep() {
   if (validateStep(currentStep.value)) {
+    // Track step completion
+    posthog.capture('onboarding_client_step_completed', {
+      step_number: currentStep.value,
+      step_name: stepTitle.value
+    })
+
     if (currentStep.value < totalSteps) {
       direction.value = 'forward'
       currentStep.value++
@@ -93,11 +106,13 @@ function prevStep() {
 }
 
 function finishOnboarding() {
+  posthog.capture('onboarding_client_completed')
   // Here we would save data to backend
   router.push('/app')
 }
 
 function skipOnboarding() {
+  posthog.capture('onboarding_client_skipped')
   router.push('/app')
 }
 

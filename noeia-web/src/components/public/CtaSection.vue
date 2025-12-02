@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
+import posthog from 'posthog-js'
+
+const trackCta = (text: string, destination: string) => {
+  posthog.capture('cta_clicked', {
+    cta_location: 'cta_section',
+    cta_text: text,
+    cta_destination: destination
+  })
+}
 </script>
 
 <template>
@@ -18,12 +27,12 @@ import Button from '@/components/ui/Button.vue'
       </p>
       
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <RouterLink to="/login">
+        <RouterLink to="/login" @click="trackCta('Book a demo', '/login')">
           <Button size="lg" class="w-full sm:w-auto rounded-full px-8 bg-white text-primary-900 hover:bg-slate-100 border-none shadow-lg">
             Book a demo
           </Button>
         </RouterLink>
-        <RouterLink to="/contact">
+        <RouterLink to="/contact" @click="trackCta('Talk to us', '/contact')">
           <Button variant="outline" size="lg" class="w-full sm:w-auto rounded-full px-8 border-slate-600 text-white hover:bg-white/10 hover:text-white hover:border-white">
             Talk to us
           </Button>
