@@ -24,6 +24,7 @@ const navItems = [
   { name: 'Product', href: '/product', hasDropdown: true },
   { name: 'For psychologists', href: '/for-psychologists' },
   { name: 'For clinics', href: '/for-clinics' },
+  { name: 'For patients', href: '/for-patients' },
   { name: 'Pricing', href: '/pricing' },
   { name: 'Resources', href: '/resources' },
 ]
