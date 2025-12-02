@@ -241,7 +241,24 @@ const router = createRouter({
         },
         {
             path: '/app',
-            name: 'dashboard',
+            name: 'app-root',
+            redirect: () => {
+                const authStore = useAuthStore()
+                const role = authStore.user?.app_metadata?.role
+                if (role === 'client') return '/app/client'
+                else if (role === 'organization') return '/app/organization'
+                else return '/app/doctor'
+            }
+        },
+        {
+            path: '/app/client',
+            name: 'client-dashboard',
+            component: () => import('@/pages/app/Dashboard.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/doctor',
+            name: 'doctor-dashboard',
             component: () => import('@/pages/app/Dashboard.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
@@ -270,8 +287,8 @@ const router = createRouter({
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
-            path: '/app/clients',
-            name: 'clients',
+            path: '/app/doctor/patients',
+            name: 'doctor-patients',
             component: () => import('@/pages/app/Clients.vue'),
             meta: { requiresAuth: true, layout: 'app' },
         },
@@ -325,7 +342,7 @@ const router = createRouter({
         },
         // Organization App Routes
         {
-            path: '/app/org/dashboard',
+            path: '/app/organization',
             name: 'org-dashboard',
             component: () => import('@/pages/app/org/OrganizationDashboard.vue'),
             meta: { requiresAuth: true, layout: 'app' },

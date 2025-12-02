@@ -112,12 +112,12 @@ function prevStep() {
 function finishOnboarding() {
   posthog.capture('onboarding_doctor_completed')
   // Here we would save data to backend
-  router.push('/app')
+  router.push('/app/doctor')
 }
 
 function skipOnboarding() {
   posthog.capture('onboarding_doctor_skipped')
-  router.push('/app/clients')
+  router.push('/app/doctor')
 }
 
 function handleFileUpload(event: Event) {

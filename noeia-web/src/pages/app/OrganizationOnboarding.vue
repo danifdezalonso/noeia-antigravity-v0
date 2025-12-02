@@ -118,12 +118,12 @@ function prevStep() {
 const finishOnboarding = async () => {
   posthog.capture('onboarding_org_completed')
   // Save data...
-  router.push('/app/org/dashboard')
+  router.push('/app/organization')
 }
 
 function skipOnboarding() {
   posthog.capture('onboarding_org_skipped')
-  router.push('/app/org/dashboard')
+  router.push('/app/organization')
 }
 
 // Team Invites Logic

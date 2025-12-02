@@ -116,7 +116,7 @@ async function handleCompleteSession(data: any) {
 import { useRouter } from 'vue-router'
 const router = useRouter()
 if (userRole.value === 'organization') {
-  router.push('/app/org/dashboard')
+  router.push('/app/organization')
 }
 </script>
 

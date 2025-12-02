@@ -108,12 +108,12 @@ function prevStep() {
 function finishOnboarding() {
   posthog.capture('onboarding_client_completed')
   // Here we would save data to backend
-  router.push('/app')
+  router.push('/app/client')
 }
 
 function skipOnboarding() {
   posthog.capture('onboarding_client_skipped')
-  router.push('/app')
+  router.push('/app/client')
 }
 
 const stepTitle = computed(() => {

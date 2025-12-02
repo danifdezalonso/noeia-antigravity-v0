@@ -48,10 +48,10 @@ onMounted(() => {
 })
 
 const defaultNavigation = [
-  { name: 'Dashboard', href: '/app', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/app/doctor', icon: LayoutDashboard },
   { name: 'Calendar', href: '/app/calendar', icon: Calendar },
   { name: 'Sessions', href: '/app/sessions', icon: Clock },
-  { name: 'Patients', href: '/app/clients', icon: Users },
+  { name: 'Patients', href: '/app/doctor/patients', icon: Users },
   { name: 'Messages', href: '/app/messages', icon: MessageSquare },
   { name: 'Billing', href: '/app/billing', icon: CreditCard },
   { name: 'IA', href: '/app/ai', icon: Sparkles },
@@ -59,7 +59,7 @@ const defaultNavigation = [
 ]
 
 const clientNavigation = [
-  { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/app/client', icon: LayoutDashboard },
   { name: 'Calendar', href: '/app/calendar', icon: Calendar },
   { name: 'Messages', href: '/app/messages', icon: MessageSquare },
   { name: 'Billing', href: '/app/client/billing', icon: CreditCard },
@@ -68,7 +68,7 @@ const clientNavigation = [
 ]
 
 const organizationNavigation = [
-  { name: 'Dashboard', href: '/app/org/dashboard', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/app/organization', icon: LayoutDashboard },
   { name: 'Doctors', href: '/app/org/doctors', icon: Stethoscope },
   { name: 'Patients', href: '/app/org/patients', icon: Users },
   { name: 'Calendar', href: '/app/org/calendar', icon: Calendar },

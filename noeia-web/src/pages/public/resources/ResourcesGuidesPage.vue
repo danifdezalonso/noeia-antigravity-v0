@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import CtaSection from '@/components/public/CtaSection.vue'
 import { Search, BookOpen, ArrowRight, Clock } from 'lucide-vue-next'
+import posthog from 'posthog-js'
 
 const isLoaded = ref(false)
 
@@ -13,6 +14,7 @@ onMounted(() => {
 
 const categories = ['All Guides', 'Getting Started', 'Workflow', 'Finance', 'Patient Management']
 const activeCategory = ref('All Guides')
+const searchQuery = ref('')
 
 const guides = [
   {
@@ -58,6 +60,32 @@ const guides = [
     image: '/images/guide-insurance.jpg'
   }
 ]
+
+const filteredGuides = computed(() => {
+  return guides.filter(guide => {
+    const matchesCategory = activeCategory.value === 'All Guides' || guide.category === activeCategory.value
+    const matchesSearch = guide.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+                          guide.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+})
+
+// Debounced search tracking
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+watch(searchQuery, (newQuery) => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  
+  if (newQuery.trim().length > 2) {
+    searchTimeout = setTimeout(() => {
+      posthog.capture('search_performed', {
+        search_term: newQuery,
+        results_count: filteredGuides.value.length,
+        page: 'resources_guides'
+      })
+    }, 1000) // Wait 1s after typing stops
+  }
+})
 </script>
 
 <template>
@@ -74,6 +102,7 @@ const guides = [
       <div class="max-w-xl mx-auto relative">
         <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
         <input 
+          v-model="searchQuery"
           type="text" 
           placeholder="Search for guides..." 
           class="w-full pl-12 pr-4 py-4 rounded-full border border-slate-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all shadow-sm"
@@ -98,9 +127,9 @@ const guides = [
 
     <!-- Guides Grid -->
     <section class="max-w-6xl mx-auto px-4 sm:px-6 pb-24">
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div v-if="filteredGuides.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div 
-          v-for="(guide, index) in guides" 
+          v-for="(guide, index) in filteredGuides" 
           :key="index"
           class="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
           :class="isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'"
