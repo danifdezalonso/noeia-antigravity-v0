@@ -17,6 +17,18 @@ const router = createRouter({
             meta: { layout: 'public' },
         },
         {
+            path: '/product',
+            name: 'product',
+            component: () => import('@/pages/public/Product.vue'),
+            meta: { layout: 'public' },
+        },
+        {
+            path: '/resources',
+            name: 'resources',
+            component: () => import('@/pages/public/Resources.vue'),
+            meta: { layout: 'public' },
+        },
+        {
             path: '/about',
             name: 'about',
             component: () => import('@/pages/public/About.vue'),
