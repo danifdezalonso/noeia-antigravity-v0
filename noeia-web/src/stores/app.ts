@@ -15,6 +15,7 @@ export interface Client {
     status: 'Active' | 'Inactive'
     related: string
     avatar: string
+    professionalId?: string
 }
 
 export interface Professional {
@@ -231,7 +232,8 @@ export const useAppStore = defineStore('app', () => {
                 phone: client.phone,
                 dob: client.dob,
                 status: client.status,
-                related: client.related
+                related: client.related,
+                professional_id: client.professionalId // Assuming column exists
             })
             .select()
             .single()
@@ -248,7 +250,8 @@ export const useAppStore = defineStore('app', () => {
                 dob: data.dob,
                 status: data.status as any,
                 related: data.related,
-                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.name}`
+                avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.name}`,
+                professionalId: data.professional_id
             }
             clients.value.push(newClient)
 
@@ -509,6 +512,7 @@ export const useAppStore = defineStore('app', () => {
         getInvoiceById,
         fetchAll,
         fetchClients,
+        fetchProfessionals,
         fetchSessions,
         fetchInvoices,
         addClient,

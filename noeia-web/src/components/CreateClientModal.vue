@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { X, User, Mail, Phone, MapPin, Calendar, FileText, Tag, Shield, Link as LinkIcon, AlertCircle } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
+import { useAppStore } from '@/stores/app'
+import { storeToRefs } from 'pinia'
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean
+  preselectedDoctorId?: string
 }>()
 
 const emit = defineEmits(['close', 'save'])
+
+const store = useAppStore()
+const { professionals, clients: existingPatients } = storeToRefs(store)
 
 // Form State
 const form = ref({
@@ -21,7 +27,7 @@ const form = ref({
   insuranceProvider: '',
   policyNumber: '',
   notes: '',
-  tags: '', // Comma separated string for simplicity in this version
+  tags: '', 
   isLinked: false,
   linkedPatientId: '',
   relationType: ''
@@ -30,19 +36,6 @@ const form = ref({
 // Validation State
 const errors = ref<Record<string, string>>({})
 
-// Mock Data
-const professionals = [
-  { id: 1, name: 'Dr. Sarah Smith' },
-  { id: 2, name: 'Dr. Michael Jones' },
-  { id: 3, name: 'Dr. Emily Chen' },
-]
-
-const existingPatients = [
-  { id: '1', name: 'John Doe' },
-  { id: 2, name: 'Jane Smith' },
-  { id: 3, name: 'Robert Johnson' },
-]
-
 const insuranceProviders = [
   'Sanitas', 'Adeslas', 'Mapfre', 'DKV', 'Asisa'
 ]
@@ -50,6 +43,21 @@ const insuranceProviders = [
 const relationTypes = [
   'Parent', 'Child', 'Partner', 'Sibling', 'Other'
 ]
+
+// Initialize form with pre-selected doctor
+watch(() => props.isOpen, (newValue) => {
+  if (newValue && props.preselectedDoctorId) {
+    const doctor = professionals.value.find(p => p.id === props.preselectedDoctorId)
+    if (doctor) {
+      form.value.professional = doctor.id
+    }
+  }
+})
+
+onMounted(() => {
+    if (professionals.value.length === 0) store.fetchProfessionals()
+    if (existingPatients.value.length === 0) store.fetchClients()
+})
 
 // Methods
 function validate() {
@@ -101,7 +109,8 @@ function save() {
   emit('save', {
     ...form.value,
     tags: tagsArray,
-    patient_id: crypto.randomUUID() // Internal ID
+    patient_id: crypto.randomUUID(), // Internal ID
+    professionalId: form.value.professional
   })
   emit('close')
   
@@ -230,7 +239,7 @@ function save() {
                 class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
               >
                 <option value="" disabled>Select a doctor</option>
-                <option v-for="pro in professionals" :key="pro.id" :value="pro.name">{{ pro.name }}</option>
+                <option v-for="pro in professionals" :key="pro.id" :value="pro.id">{{ pro.name }}</option>
               </select>
             </div>
 

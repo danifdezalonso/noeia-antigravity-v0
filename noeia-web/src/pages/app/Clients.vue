@@ -7,9 +7,16 @@ import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { storeToRefs } from 'pinia'
 
+import { useAuthStore } from '@/stores/auth'
+
 const router = useRouter()
 const store = useAppStore()
+const authStore = useAuthStore()
 const { clients } = storeToRefs(store)
+
+const currentDoctorId = computed(() => {
+  return authStore.user?.app_metadata?.role === 'doctor' ? authStore.user?.id : undefined
+})
 
 const searchQuery = ref('')
 const statusFilter = ref('All')
@@ -36,7 +43,8 @@ async function handleSaveClient(clientData: any) {
       phone: clientData.phone,
       dob: clientData.dob,
       status: 'Active',
-      related: clientData.isLinked && clientData.relatedPatient ? 'Linked' : 'None' // Simplified for list view
+      related: clientData.isLinked && clientData.relatedPatient ? 'Linked' : 'None',
+      professionalId: clientData.professionalId
     })
   } catch (error) {
     console.error('Failed to add client:', error)
@@ -179,6 +187,7 @@ function navigateToDetail(id: string) {
 
     <CreateClientModal 
       :is-open="isModalOpen" 
+      :preselected-doctor-id="currentDoctorId"
       @close="isModalOpen = false"
       @save="handleSaveClient"
     />
