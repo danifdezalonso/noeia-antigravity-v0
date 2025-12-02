@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { X, Calendar, Clock, User, Users, AlignLeft, AlertCircle } from 'lucide-vue-next'
+import { X, Calendar, Clock, User, Users, AlignLeft } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
 const props = defineProps<{
@@ -39,8 +39,8 @@ watch(() => props.isOpen, (newVal) => {
       // Edit mode
       form.value = { ...props.event }
       // Ensure IDs are strings for selects
-      form.value.doctorId = props.event.doctorId?.toString() || ''
-      form.value.patientId = props.event.patientId?.toString() || ''
+      form.value.doctorId = props.event.doctorId ? props.event.doctorId.toString() : ''
+      form.value.patientId = props.event.patientId ? props.event.patientId.toString() : ''
     } else {
       // Create mode - reset form
       form.value = {
@@ -51,7 +51,7 @@ watch(() => props.isOpen, (newVal) => {
         patientId: '',
         location: 'Online',
         roomId: '',
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0] || '',
         startTime: '09:00',
         endTime: '10:00',
         description: ''

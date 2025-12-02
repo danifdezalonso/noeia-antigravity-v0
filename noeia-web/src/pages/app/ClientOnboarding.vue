@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { Check, ChevronLeft, ArrowRight, Shield, User, Smartphone, MapPin, Stethoscope } from 'lucide-vue-next'
+import { ChevronLeft, ArrowRight, Shield, User, Smartphone, MapPin, Stethoscope } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
 const router = useRouter()
@@ -300,10 +300,10 @@ const progress = computed(() => ((currentStep.value - 1) / (totalSteps - 1)) * 1
 
             <!-- Professional Card -->
             <div class="p-4 border border-slate-200 rounded-xl flex items-center gap-4 bg-slate-50/50">
-              <img :src="professionals[0].avatar" class="w-12 h-12 rounded-full bg-slate-200 object-cover" />
+              <img :src="professionals[0]?.avatar" class="w-12 h-12 rounded-full bg-slate-200 object-cover" />
               <div>
-                <h3 class="font-semibold text-slate-900">{{ professionals[0].name }}</h3>
-                <p class="text-sm text-slate-500">{{ professionals[0].specialty }}</p>
+                <h3 class="font-semibold text-slate-900">{{ professionals[0]?.name }}</h3>
+                <p class="text-sm text-slate-500">{{ professionals[0]?.specialty }}</p>
               </div>
             </div>
           </div>

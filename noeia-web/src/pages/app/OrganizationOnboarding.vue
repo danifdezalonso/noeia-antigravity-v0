@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { ChevronLeft, ArrowRight, User, Mail, Lock, Building, Upload, X, Plus, Check, CreditCard, Eye, EyeOff } from 'lucide-vue-next'
+import { ChevronLeft, ArrowRight, User, Mail, Lock, Building, Upload, X, Check, Eye, EyeOff } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
 const router = useRouter()

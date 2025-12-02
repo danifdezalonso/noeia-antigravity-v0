@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, Filter, Download, CreditCard, CheckCircle, AlertCircle, Clock } from 'lucide-vue-next'
+import { Search, Download, CheckCircle, AlertCircle, Clock } from 'lucide-vue-next'
 
 // Mock Data
 const invoices = ref([

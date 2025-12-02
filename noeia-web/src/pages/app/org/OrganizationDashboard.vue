@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Users, Calendar, CreditCard, Activity, ArrowUpRight, ArrowDownRight, MoreHorizontal, Clock } from 'lucide-vue-next'
+
+import { Users, Calendar, CreditCard, Activity, ArrowUpRight, ArrowDownRight, MoreHorizontal } from 'lucide-vue-next'
 
 // Mock Data
 const metrics = [

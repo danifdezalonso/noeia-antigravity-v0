@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, Filter, MoreHorizontal, Calendar, User, Clock } from 'lucide-vue-next'
+import { Search, MoreHorizontal, Calendar, User, Clock } from 'lucide-vue-next'
 
 // Mock Data
 const patients = ref([

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, Check, Plus } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Check, Plus } from 'lucide-vue-next'
 import CalendarEventModal from '@/components/org/CalendarEventModal.vue'
 
 // Mock Doctors & Colors
@@ -62,9 +62,15 @@ const filteredEvents = computed(() => {
 })
 
 function getEventsForDayAndHour(dayIndex: number, hour: string) {
-  const hourNum = parseInt(hour.split(':')[0])
+  const hourPart = hour.split(':')[0]
+  if (!hourPart) return []
+  const hourNum = parseInt(hourPart)
+  
   return filteredEvents.value.filter(event => {
-    const eventHour = parseInt(event.startTime.split(':')[0])
+    if (!event.startTime) return false
+    const eventHourPart = event.startTime.split(':')[0]
+    if (!eventHourPart) return false
+    const eventHour = parseInt(eventHourPart)
     return event.day === dayIndex + 1 && eventHour === hourNum
   })
 }
@@ -170,25 +176,30 @@ function handleMouseOver(dayIndex: number, hour: string) {
 function handleMouseUp() {
   if (isDragging.value && dragStart.value && dragEnd.value) {
     // Open modal with range
-    const startHour = parseInt(dragStart.value.hour.split(':')[0])
-    const endHour = parseInt(dragEnd.value.hour.split(':')[0])
+    const startHourPart = dragStart.value.hour.split(':')[0]
+    const endHourPart = dragEnd.value.hour.split(':')[0]
     
-    const minHour = Math.min(startHour, endHour)
-    const maxHour = Math.max(startHour, endHour)
-    
-    const startTime = `${minHour.toString().padStart(2, '0')}:00`
-    const endTime = `${(maxHour + 1).toString().padStart(2, '0')}:00`
-    
-    // Calculate date based on day index (Mock: Oct 23 is Mon)
-    const baseDate = new Date('2023-10-23')
-    baseDate.setDate(baseDate.getDate() + dragStart.value.day)
-    const dateStr = baseDate.toISOString().split('T')[0]
+    if (startHourPart && endHourPart) {
+      const startHour = parseInt(startHourPart)
+      const endHour = parseInt(endHourPart)
+      
+      const minHour = Math.min(startHour, endHour)
+      const maxHour = Math.max(startHour, endHour)
+      
+      const startTime = `${minHour.toString().padStart(2, '0')}:00`
+      const endTime = `${(maxHour + 1).toString().padStart(2, '0')}:00`
+      
+      // Calculate date based on day index (Mock: Oct 23 is Mon)
+      const baseDate = new Date('2023-10-23')
+      baseDate.setDate(baseDate.getDate() + dragStart.value.day)
+      const dateStr = baseDate.toISOString().split('T')[0]
 
-    openCreateModal({
-      date: dateStr,
-      startTime,
-      endTime
-    })
+      openCreateModal({
+        date: dateStr,
+        startTime,
+        endTime
+      })
+    }
   }
   isDragging.value = false
   dragStart.value = null
@@ -199,9 +210,15 @@ function isSlotSelected(dayIndex: number, hour: string) {
   if (!isDragging.value || !dragStart.value || !dragEnd.value) return false
   if (dayIndex !== dragStart.value.day) return false
   
-  const currentHour = parseInt(hour.split(':')[0])
-  const startHour = parseInt(dragStart.value.hour.split(':')[0])
-  const endHour = parseInt(dragEnd.value.hour.split(':')[0])
+  const currentHourPart = hour.split(':')[0]
+  const startHourPart = dragStart.value.hour.split(':')[0]
+  const endHourPart = dragEnd.value.hour.split(':')[0]
+  
+  if (!currentHourPart || !startHourPart || !endHourPart) return false
+
+  const currentHour = parseInt(currentHourPart)
+  const startHour = parseInt(startHourPart)
+  const endHour = parseInt(endHourPart)
   
   return currentHour >= Math.min(startHour, endHour) && currentHour <= Math.max(startHour, endHour)
 }

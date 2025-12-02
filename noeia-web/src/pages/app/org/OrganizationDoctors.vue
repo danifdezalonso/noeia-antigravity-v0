@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, Plus, Filter, MoreHorizontal, Mail, Phone, Calendar, X, Check, User } from 'lucide-vue-next'
+import { Search, Plus, MoreHorizontal, Mail, Phone, X, User } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
 // Mock Data

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
-import { Send, Search, MoreVertical, Phone, Video, Image, Paperclip, Smile } from 'lucide-vue-next'
+import { Send, Search, MoreVertical, Phone, Video, Paperclip, Smile } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
 // Mock Data
