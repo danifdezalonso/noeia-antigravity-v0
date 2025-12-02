@@ -47,6 +47,18 @@ const router = createRouter({
             meta: { requiresAuth: true, layout: 'app' },
         },
         {
+            path: '/app/client/profile',
+            name: 'ClientProfile',
+            component: () => import('@/pages/app/client/ClientProfile.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/client/billing',
+            name: 'ClientBilling',
+            component: () => import('@/pages/app/client/ClientBilling.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
             path: '/app/clients',
             name: 'clients',
             component: () => import('@/pages/app/Clients.vue'),
@@ -99,6 +111,49 @@ const router = createRouter({
             name: 'organization-onboarding',
             component: () => import('@/pages/app/OrganizationOnboarding.vue'),
             meta: { requiresAuth: true, layout: 'public' },
+        },
+        // Organization App Routes
+        {
+            path: '/app/org/dashboard',
+            name: 'org-dashboard',
+            component: () => import('@/pages/app/org/OrganizationDashboard.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/org/doctors',
+            name: 'org-doctors',
+            component: () => import('@/pages/app/org/OrganizationDoctors.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/org/patients',
+            name: 'org-patients',
+            component: () => import('@/pages/app/org/OrganizationPatients.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/org/calendar',
+            name: 'org-calendar',
+            component: () => import('@/pages/app/org/OrganizationCalendar.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/org/office',
+            name: 'OrganizationOffice',
+            component: () => import('@/pages/app/org/OrganizationOffice.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/org/billing',
+            name: 'OrganizationBilling',
+            component: () => import('@/pages/app/org/OrganizationBilling.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
+        },
+        {
+            path: '/app/org/settings',
+            name: 'org-settings',
+            component: () => import('@/pages/app/org/OrganizationSettings.vue'),
+            meta: { requiresAuth: true, layout: 'app' },
         },
     ],
 })

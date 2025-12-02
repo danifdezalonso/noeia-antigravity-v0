@@ -9,6 +9,7 @@ import {
   LayoutDashboard, 
   Calendar, 
   Users, 
+  User,
   Settings, 
   Menu,
   Clock,
@@ -18,7 +19,9 @@ import {
   Plus,
   Search,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Stethoscope,
+  Building
 } from 'lucide-vue-next'
 
 import OrgSelector from '@/components/OrgSelector.vue'
@@ -55,17 +58,30 @@ const defaultNavigation = [
 ]
 
 const clientNavigation = [
-  { name: 'Dashboard', href: '/app', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
   { name: 'Calendar', href: '/app/calendar', icon: Calendar },
   { name: 'Messages', href: '/app/messages', icon: MessageSquare },
-  { name: 'Payments', href: '/app/billing', icon: CreditCard },
+  { name: 'Billing', href: '/app/client/billing', icon: CreditCard },
+  { name: 'Profile', href: '/app/profile', icon: User },
   { name: 'Settings', href: '/app/settings', icon: Settings },
+]
+
+const organizationNavigation = [
+  { name: 'Dashboard', href: '/app/org/dashboard', icon: LayoutDashboard },
+  { name: 'Doctors', href: '/app/org/doctors', icon: Stethoscope },
+  { name: 'Patients', href: '/app/org/patients', icon: Users },
+  { name: 'Calendar', href: '/app/org/calendar', icon: Calendar },
+  { name: 'Office', href: '/app/org/office', icon: Building },
+  { name: 'Billing', href: '/app/org/billing', icon: CreditCard },
+  { name: 'Settings', href: '/app/org/settings', icon: Settings },
 ]
 
 const navigation = computed(() => {
   const role = user.value?.app_metadata?.role
   if (role === 'client') {
     return clientNavigation
+  } else if (role === 'organization') {
+    return organizationNavigation
   }
   return defaultNavigation
 })

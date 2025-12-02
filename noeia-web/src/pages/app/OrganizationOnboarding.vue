@@ -102,13 +102,13 @@ function prevStep() {
   }
 }
 
-function finishOnboarding() {
-  // Here we would save data to backend
-  router.push('/app')
+const finishOnboarding = async () => {
+  // Save data...
+  router.push('/app/org/dashboard')
 }
 
 function skipOnboarding() {
-  router.push('/app')
+  router.push('/app/org/dashboard')
 }
 
 // Team Invites Logic

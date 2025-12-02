@@ -111,6 +111,13 @@ async function handleCompleteSession(data: any) {
     selectedSession.value = null
   }
 }
+
+// Redirect Organization users to their specific dashboard
+import { useRouter } from 'vue-router'
+const router = useRouter()
+if (userRole.value === 'organization') {
+  router.push('/app/org/dashboard')
+}
 </script>
 
 <template>

@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     function loginAsDoctor() {
-        user.value = {
+        const mockUser = {
             id: 'test-doctor',
             aud: 'authenticated',
             role: 'authenticated',
@@ -39,11 +39,13 @@ export const useAuthStore = defineStore('auth', () => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User
+        user.value = mockUser
+        localStorage.setItem('mockUser', JSON.stringify(mockUser))
         router.push('/app/doctor-onboarding')
     }
 
     function loginAsOrganization() {
-        user.value = {
+        const mockUser = {
             id: 'test-org',
             aud: 'authenticated',
             role: 'authenticated',
@@ -62,11 +64,13 @@ export const useAuthStore = defineStore('auth', () => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User
+        user.value = mockUser
+        localStorage.setItem('mockUser', JSON.stringify(mockUser))
         router.push('/app/organization-onboarding')
     }
 
     function loginAsClient() {
-        user.value = {
+        const mockUser = {
             id: 'test-client',
             aud: 'authenticated',
             role: 'authenticated',
@@ -85,16 +89,26 @@ export const useAuthStore = defineStore('auth', () => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         } as User
+        user.value = mockUser
+        localStorage.setItem('mockUser', JSON.stringify(mockUser))
         router.push('/app/onboarding')
     }
 
     async function logout() {
         await supabase.auth.signOut()
         user.value = null
+        localStorage.removeItem('mockUser')
         router.push('/login')
     }
 
     async function checkAuth() {
+        // First check for mock user
+        const mockUser = localStorage.getItem('mockUser')
+        if (mockUser) {
+            user.value = JSON.parse(mockUser)
+            return
+        }
+
         const { data: { session } } = await supabase.auth.getSession()
 
         user.value = session?.user || null
