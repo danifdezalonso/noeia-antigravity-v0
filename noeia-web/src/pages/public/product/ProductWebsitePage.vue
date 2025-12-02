@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
-import { Building, Calendar, Users, Shield, Check, ArrowLeft, ArrowRight } from 'lucide-vue-next'
+import { Building, Users, Shield, Check, ArrowLeft, ArrowRight } from 'lucide-vue-next'
 
 // Animation composable
 const useScrollReveal = () => {

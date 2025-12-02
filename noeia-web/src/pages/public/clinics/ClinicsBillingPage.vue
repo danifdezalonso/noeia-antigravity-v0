@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import Button from '@/components/ui/Button.vue'
+
 import { BarChart3, DollarSign, Download, ArrowUpRight, ArrowDownRight, Users } from 'lucide-vue-next'
 
 const isVisible = ref(false)

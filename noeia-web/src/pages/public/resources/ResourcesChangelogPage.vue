@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import CtaSection from '@/components/public/CtaSection.vue'
-import { History, Tag } from 'lucide-vue-next'
+import { History } from 'lucide-vue-next'
 
 const isLoaded = ref(false)
 

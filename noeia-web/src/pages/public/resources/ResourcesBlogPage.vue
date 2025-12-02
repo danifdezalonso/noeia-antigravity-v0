@@ -98,18 +98,18 @@ const articles = [
            <!-- Actual image would go here -->
         </div>
         <div class="relative z-20 p-8 md:p-16 flex flex-col justify-center md:order-1">
-          <div class="text-emerald-400 font-bold tracking-wider text-sm mb-4 uppercase">{{ articles[0].category }}</div>
-          <h2 class="text-3xl md:text-4xl font-bold mb-6 leading-tight group-hover:text-emerald-400 transition-colors">{{ articles[0].title }}</h2>
-          <p class="text-slate-300 text-lg mb-8 leading-relaxed line-clamp-3">{{ articles[0].excerpt }}</p>
+          <div class="text-emerald-400 font-bold tracking-wider text-sm mb-4 uppercase">{{ articles[0]?.category }}</div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-6 leading-tight group-hover:text-emerald-400 transition-colors">{{ articles[0]?.title }}</h2>
+          <p class="text-slate-300 text-lg mb-8 leading-relaxed line-clamp-3">{{ articles[0]?.excerpt }}</p>
           
           <div class="flex items-center gap-4 text-sm text-slate-400 mb-8">
             <div class="flex items-center gap-2">
               <User class="w-4 h-4" />
-              {{ articles[0].author }}
+              {{ articles[0]?.author }}
             </div>
             <div class="flex items-center gap-2">
               <Calendar class="w-4 h-4" />
-              {{ articles[0].date }}
+              {{ articles[0]?.date }}
             </div>
           </div>
 

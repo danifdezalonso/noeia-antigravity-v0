@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Button from '@/components/ui/Button.vue'
-import { Calendar, Users, AlertCircle, FileText, CheckCircle2 } from 'lucide-vue-next'
+import { Calendar, AlertCircle, FileText, CheckCircle2 } from 'lucide-vue-next'
 
 const isVisible = ref(false)
 
