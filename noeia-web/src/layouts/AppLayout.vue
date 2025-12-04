@@ -32,6 +32,8 @@ import HelpModal from '@/components/HelpModal.vue'
 import AIAssistant from '@/components/AIAssistant.vue'
 import CreateClientModal from '@/components/CreateClientModal.vue'
 import GlobalMessaging from '@/components/messaging/GlobalMessaging.vue'
+import AddDoctorFullScreenModal from '@/components/org/AddDoctorFullScreenModal.vue'
+import AddPatientFullScreenModal from '@/components/org/AddPatientFullScreenModal.vue'
 
 const route = useRoute()
 const store = useAppStore()
@@ -43,6 +45,24 @@ const isFeedbackOpen = ref(false)
 const isHelpOpen = ref(false)
 const isQuickAddOpen = ref(false)
 const isClientModalOpen = ref(false)
+const isAddDoctorModalOpen = ref(false)
+const addDoctorCallback = ref<((id: string) => void) | undefined>(undefined)
+const isAddPatientModalOpen = ref(false)
+const addPatientCallback = ref<((id: string) => void) | undefined>(undefined)
+
+function openAddDoctorModal(callback?: (id: string) => void) {
+  addDoctorCallback.value = callback
+  isAddDoctorModalOpen.value = true
+}
+
+function openAddPatientModal(callback?: (id: string) => void) {
+  addPatientCallback.value = callback
+  isAddPatientModalOpen.value = true
+}
+
+import { provide } from 'vue'
+provide('openAddDoctorModal', openAddDoctorModal)
+provide('openAddPatientModal', openAddPatientModal)
 
 onMounted(() => {
   store.fetchAll()
@@ -150,6 +170,14 @@ function isActive(path: string) {
             >
               <Users class="w-4 h-4" />
               Patient
+            </button>
+            <button 
+              v-if="route.path.startsWith('/app/organization')"
+              @click="isQuickAddOpen = false; openAddDoctorModal()"
+              class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors flex items-center gap-2"
+            >
+              <Stethoscope class="w-4 h-4" />
+              Doctor
             </button>
             <button class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors flex items-center gap-2">
               <CreditCard class="w-4 h-4" />
@@ -262,6 +290,19 @@ function isActive(path: string) {
     <FeedbackModal :is-open="isFeedbackOpen" @close="isFeedbackOpen = false" />
     <HelpModal :is-open="isHelpOpen" @close="isHelpOpen = false" />
     <CreateClientModal :is-open="isClientModalOpen" @close="isClientModalOpen = false" />
+    <AddDoctorFullScreenModal 
+      :is-open="isAddDoctorModalOpen" 
+      @close="isAddDoctorModalOpen = false"
+      @doctor-created="(id) => {
+        if (addDoctorCallback) addDoctorCallback(id)
+      }"
+    />
+    <AddPatientFullScreenModal 
+      v-model="isAddPatientModalOpen"
+      @created="(id) => {
+        if (addPatientCallback) addPatientCallback(id)
+      }"
+    />
 
     <!-- Global Messaging -->
     <GlobalMessaging />

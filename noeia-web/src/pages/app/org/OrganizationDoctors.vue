@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 import { Search, Plus, MoreHorizontal, Mail, Phone, X, User } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 import posthog from 'posthog-js'
@@ -92,21 +92,26 @@ const currentDoctor = ref({
   avatar: ''
 })
 
+const openAddDoctorModal = inject('openAddDoctorModal') as (callback?: (id: string) => void) => void
+
 function openAddModal() {
-  isEditing.value = false
-  currentDoctor.value = {
-    id: 0,
-    name: '',
-    email: '',
-    phone: '',
-    specialty: '',
-    category: 'Psychologist',
-    type: 'Doctor',
-    status: 'Active',
-    description: '',
-    avatar: ''
-  }
-  isModalOpen.value = true
+  openAddDoctorModal((newDoctorId) => {
+    console.log('Doctor created with ID:', newDoctorId)
+    // Mock adding to list
+    const newDoctor = {
+      id: doctors.value.length + 1,
+      name: 'New Doctor', // In a real app, we'd fetch the new doctor details
+      email: 'doctor@example.com',
+      phone: '',
+      specialty: 'Psychologist',
+      category: 'Psychologist',
+      type: 'Doctor',
+      status: 'Pending',
+      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
+      description: ''
+    }
+    doctors.value.push(newDoctor)
+  })
 }
 
 function openEditModal(doctor: any) {
