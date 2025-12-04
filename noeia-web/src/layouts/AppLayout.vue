@@ -31,6 +31,7 @@ import FeedbackModal from '@/components/FeedbackModal.vue'
 import HelpModal from '@/components/HelpModal.vue'
 import AIAssistant from '@/components/AIAssistant.vue'
 import CreateClientModal from '@/components/CreateClientModal.vue'
+import GlobalMessaging from '@/components/messaging/GlobalMessaging.vue'
 
 const route = useRoute()
 const store = useAppStore()
@@ -261,6 +262,9 @@ function isActive(path: string) {
     <FeedbackModal :is-open="isFeedbackOpen" @close="isFeedbackOpen = false" />
     <HelpModal :is-open="isHelpOpen" @close="isHelpOpen = false" />
     <CreateClientModal :is-open="isClientModalOpen" @close="isClientModalOpen = false" />
+
+    <!-- Global Messaging -->
+    <GlobalMessaging />
 
   </div>
 </template>
