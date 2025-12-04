@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Search, MoreHorizontal, Calendar, User, Clock } from 'lucide-vue-next'
+import { ref, computed, inject } from 'vue'
+import { Search, MoreHorizontal, Calendar, User, Clock, Plus } from 'lucide-vue-next'
+import Button from '@/components/ui/Button.vue'
 
 // Mock Data
 const patients = ref([
@@ -82,6 +83,25 @@ function formatDate(dateStr: string) {
   if (dateStr === '-') return '-'
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
+
+const openAddPatientModal = inject('openAddPatientModal') as (callback?: (id: string) => void) => void
+
+function openAddModal() {
+  openAddPatientModal((newPatientId) => {
+    console.log('Patient created with ID:', newPatientId)
+    // Mock adding to list
+    const newPatient = {
+      id: patients.value.length + 1,
+      name: 'New Patient',
+      assignedDoctor: 'Unassigned',
+      status: 'Onboarding',
+      lastSession: '-',
+      nextSession: '-',
+      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`
+    }
+    patients.value.push(newPatient)
+  })
+}
 </script>
 
 <template>
@@ -92,6 +112,10 @@ function formatDate(dateStr: string) {
         <h1 class="text-2xl font-bold text-slate-900">Patients</h1>
         <p class="text-slate-500">View and manage patient records across the organization.</p>
       </div>
+      <Button @click="openAddModal">
+        <Plus class="w-4 h-4 mr-2" />
+        Add Patient
+      </Button>
     </div>
 
     <!-- Filters -->
