@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Settings, Sparkles, Palette, LogOut } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 
 const auth = useAuthStore()
-const isOpen = ref(false)
 
 const menuItems = [
   { label: 'Account Preferences', icon: Settings },
@@ -14,47 +22,32 @@ const menuItems = [
 </script>
 
 <template>
-  <div class="relative">
-    <button 
-      @click="isOpen = !isOpen"
-      class="flex items-center gap-2 hover:bg-slate-100 rounded-full p-1 transition-colors"
-    >
-      <img 
-        :src="auth.user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'" 
-        alt="User Avatar" 
-        class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200"
-      />
-    </button>
-
-    <div v-if="isOpen" class="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
-      <div class="px-4 py-3 border-b border-slate-100 bg-slate-50">
-        <p class="text-sm font-medium text-slate-900">{{ auth.user?.user_metadata?.full_name || 'User' }}</p>
-        <p class="text-xs text-slate-500 truncate">{{ auth.user?.email }}</p>
-      </div>
-      
-      <div class="py-1">
-        <button 
-          v-for="item in menuItems" 
-          :key="item.label"
-          class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
-        >
-          <component :is="item.icon" class="w-4 h-4 text-slate-400" />
-          {{ item.label }}
-        </button>
-      </div>
-
-      <div class="border-t border-slate-100 py-1">
-        <button 
-          @click="auth.logout()"
-          class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-        >
-          <LogOut class="w-4 h-4" />
-          Log out
-        </button>
-      </div>
-    </div>
-
-    <!-- Backdrop -->
-    <div v-if="isOpen" @click="isOpen = false" class="fixed inset-0 z-40"></div>
-  </div>
+  <DropdownMenu>
+    <DropdownMenuTrigger as-child>
+      <Button variant="ghost" class="relative h-8 w-8 rounded-full">
+        <Avatar class="h-8 w-8">
+          <AvatarImage :src="auth.user?.user_metadata?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'" alt="User Avatar" />
+          <AvatarFallback>U</AvatarFallback>
+        </Avatar>
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent class="w-56" align="end">
+      <DropdownMenuLabel class="font-normal">
+        <div class="flex flex-col space-y-1">
+          <p class="text-sm font-medium leading-none">{{ auth.user?.user_metadata?.full_name || 'User' }}</p>
+          <p class="text-xs leading-none text-muted-foreground">{{ auth.user?.email }}</p>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem v-for="item in menuItems" :key="item.label">
+        <component :is="item.icon" class="mr-2 h-4 w-4" />
+        <span>{{ item.label }}</span>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem @click="auth.logout()" class="text-red-600 focus:text-red-600">
+        <LogOut class="mr-2 h-4 w-4" />
+        <span>Log out</span>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>

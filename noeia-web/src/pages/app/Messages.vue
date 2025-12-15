@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { Send, Search, MoreVertical, Phone, Video, Paperclip, Smile } from 'lucide-vue-next'
-import Button from '@/components/ui/Button.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
 
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
@@ -27,6 +31,7 @@ const conversations = computed(() => {
         professional: {
           id: 'pro1',
           name: 'Dr. Sarah Connor',
+          initials: 'SC',
           avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
           role: 'Clinical Psychologist',
           status: 'online'
@@ -52,6 +57,7 @@ const conversations = computed(() => {
         professional: {
           id: 'patient1',
           name: 'Sarah Johnson',
+          initials: 'SJ',
           avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SarahJ',
           role: 'Patient',
           status: 'online'
@@ -73,6 +79,7 @@ const conversations = computed(() => {
         professional: {
           id: 'patient2',
           name: 'Michael Brown',
+          initials: 'MB',
           avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
           role: 'Patient',
           status: 'offline'
@@ -145,26 +152,26 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-[calc(100vh-8rem)] bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+  <div class="flex h-[calc(100vh-8rem)] bg-card border rounded-xl overflow-hidden shadow-sm animate-in fade-in duration-500">
     <!-- Sidebar (Conversations) -->
-    <div class="w-80 border-r border-slate-200 flex flex-col bg-slate-50">
+    <div class="w-80 border-r flex flex-col bg-muted/20">
       <!-- Header -->
-      <div class="p-4 border-b border-slate-200 flex items-center justify-between">
-        <h2 class="font-semibold text-slate-900">Messages</h2>
-        <button class="p-2 hover:bg-slate-200 rounded-full text-slate-500">
+      <div class="p-4 border-b flex items-center justify-between">
+        <h2 class="font-semibold text-foreground">Messages</h2>
+        <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground rounded-full">
           <MoreVertical class="w-4 h-4" />
-        </button>
+        </Button>
       </div>
 
       <!-- Search -->
       <div class="p-4">
         <div class="relative">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input 
             type="text" 
             placeholder="Search messages..." 
-            class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-          >
+            class="pl-9 bg-background"
+          />
         </div>
       </div>
 
@@ -174,53 +181,60 @@ onMounted(() => {
           v-for="conv in conversations" 
           :key="conv.id"
           @click="activeConversationId = conv.id"
-          class="p-4 flex gap-3 cursor-pointer hover:bg-slate-100 transition-colors border-l-4"
-          :class="activeConversationId === conv.id ? 'bg-white border-primary-500' : 'border-transparent'"
+          class="p-4 flex gap-3 cursor-pointer hover:bg-accent/50 transition-colors border-l-4"
+          :class="activeConversationId === conv.id ? 'bg-background border-primary shadow-sm' : 'border-transparent'"
         >
           <div class="relative">
-            <img :src="conv.professional.avatar" class="w-10 h-10 rounded-full object-cover bg-slate-200" />
-            <span v-if="conv.professional.status === 'online'" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+            <Avatar class="h-10 w-10 border border-slate-200">
+              <AvatarImage :src="conv.professional.avatar" />
+              <AvatarFallback>{{ conv.professional.initials }}</AvatarFallback>
+            </Avatar>
+            <span v-if="conv.professional.status === 'online'" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></span>
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-1">
-              <h3 class="text-sm font-medium text-slate-900 truncate">{{ conv.professional.name }}</h3>
-              <span class="text-xs text-slate-400">{{ conv.lastMessageTime }}</span>
+              <h3 class="text-sm font-medium text-foreground truncate">{{ conv.professional.name }}</h3>
+              <span class="text-xs text-muted-foreground">{{ conv.lastMessageTime }}</span>
             </div>
-            <p class="text-xs text-slate-500 truncate">{{ conv.lastMessage }}</p>
+            <p class="text-xs text-muted-foreground truncate">{{ conv.lastMessage }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Main Chat Area -->
-    <div class="flex-1 flex flex-col bg-white">
+    <div class="flex-1 flex flex-col bg-background">
       <!-- Chat Header -->
-      <div v-if="activeConversation" class="h-16 px-6 border-b border-slate-200 flex items-center justify-between">
+      <div v-if="activeConversation" class="h-16 px-6 border-b flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img :src="activeConversation.professional.avatar" class="w-10 h-10 rounded-full object-cover bg-slate-200" />
+          <Avatar class="h-10 w-10 border border-slate-200">
+              <AvatarImage :src="activeConversation.professional.avatar" />
+              <AvatarFallback>{{ activeConversation.professional.initials }}</AvatarFallback>
+            </Avatar>
           <div>
-            <h3 class="text-sm font-semibold text-slate-900">{{ activeConversation.professional.name }}</h3>
-            <p class="text-xs text-green-600 flex items-center gap-1">
+            <h3 class="text-sm font-semibold text-foreground">{{ activeConversation.professional.name }}</h3>
+            <p class="text-xs text-green-600 flex items-center gap-1 font-medium">
               <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
               Online
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full">
+        <div class="flex items-center gap-1">
+          <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground rounded-full">
             <Phone class="w-5 h-5" />
-          </button>
-          <button class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full">
+          </Button>
+          <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground rounded-full">
             <Video class="w-5 h-5" />
-          </button>
-          <button class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full">
+          </Button>
+          <Separator orientation="vertical" class="h-6 mx-2" />
+          <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground rounded-full">
             <MoreVertical class="w-5 h-5" />
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Messages -->
-      <div ref="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/30">
+      <div ref="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/10">
         <div 
           v-for="msg in activeMessages" 
           :key="msg.id" 
@@ -230,13 +244,13 @@ onMounted(() => {
           <div 
             class="max-w-[70%] rounded-2xl px-4 py-3 text-sm shadow-sm"
             :class="msg.senderId === currentUser.id 
-              ? 'bg-primary-600 text-white rounded-br-none' 
-              : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'"
+              ? 'bg-primary text-primary-foreground rounded-br-none' 
+              : 'bg-card text-card-foreground border rounded-bl-none'"
           >
             <p>{{ msg.text }}</p>
             <p 
               class="text-[10px] mt-1 text-right opacity-70"
-              :class="msg.senderId === currentUser.id ? 'text-primary-100' : 'text-slate-400'"
+              :class="msg.senderId === currentUser.id ? 'text-primary-foreground/80' : 'text-muted-foreground'"
             >
               {{ msg.time }}
             </p>
@@ -245,22 +259,23 @@ onMounted(() => {
       </div>
 
       <!-- Input Area -->
-      <div class="p-4 border-t border-slate-200 bg-white">
-        <div class="flex items-end gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 focus-within:border-primary-300 focus-within:ring-1 focus-within:ring-primary-100 transition-all">
-          <button class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/50">
+      <div class="p-4 border-t bg-background">
+        <div class="flex items-end gap-2 bg-muted/30 p-2 rounded-xl border focus-within:ring-1 focus-within:ring-primary transition-all">
+          <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground rounded-lg">
             <Paperclip class="w-5 h-5" />
-          </button>
-          <textarea 
+          </Button>
+          
+          <Textarea 
             v-model="newMessage"
             @keydown.enter.prevent="sendMessage"
             placeholder="Type a message..." 
             rows="1"
-            class="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-900 placeholder:text-slate-400 resize-none py-2 max-h-32"
-            style="min-height: 40px;"
-          ></textarea>
-          <button class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/50">
+            class="flex-1 min-h-[40px] max-h-32 py-2 resize-none border-0 focus-visible:ring-0 bg-transparent shadow-none"
+          />
+          
+          <Button variant="ghost" size="icon" class="h-9 w-9 text-muted-foreground rounded-lg">
             <Smile class="w-5 h-5" />
-          </button>
+          </Button>
           <Button 
             @click="sendMessage" 
             :disabled="!newMessage.trim()"

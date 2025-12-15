@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue'
-import { Search, Plus, MoreHorizontal, Mail, Phone, X, User } from 'lucide-vue-next'
-import Button from '@/components/ui/Button.vue'
+import { Search, Plus, MoreHorizontal, Mail, Phone, User } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import posthog from 'posthog-js'
 import { useAuthStore } from '@/stores/auth'
 
@@ -17,6 +27,7 @@ const doctors = ref([
     type: 'Manager', 
     status: 'Active',
     avatar: 'https://i.pravatar.cc/150?u=anna',
+    initials: 'AR',
     description: 'Specialized in anxiety and depression disorders with 10 years of experience.'
   },
   { 
@@ -29,6 +40,7 @@ const doctors = ref([
     type: 'Doctor', 
     status: 'Active',
     avatar: 'https://i.pravatar.cc/150?u=marc',
+    initials: 'MV',
     description: 'Expert in child development and behavioral issues.'
   },
   { 
@@ -41,6 +53,7 @@ const doctors = ref([
     type: 'Doctor', 
     status: 'Active',
     avatar: 'https://i.pravatar.cc/150?u=julia',
+    initials: 'JS',
     description: 'Helping couples navigate relationship challenges.'
   },
   { 
@@ -53,14 +66,15 @@ const doctors = ref([
     type: 'Doctor', 
     status: 'Inactive',
     avatar: 'https://i.pravatar.cc/150?u=omar',
+    initials: 'OL',
     description: 'Cognitive Behavioral Therapy specialist.'
   },
 ])
 
 // Filters
 const searchQuery = ref('')
-const selectedSpecialty = ref('')
-const selectedType = ref('')
+const selectedSpecialty = ref('all')
+const selectedType = ref('all')
 
 const specialties = ['Clinical Psychologist', 'Child Psychologist', 'Couples Therapist', 'CBT Specialist']
 const types = ['Manager', 'Doctor']
@@ -69,8 +83,8 @@ const filteredDoctors = computed(() => {
   return doctors.value.filter(doctor => {
     const matchesSearch = doctor.name.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
                           doctor.email.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesSpecialty = !selectedSpecialty.value || doctor.specialty === selectedSpecialty.value
-    const matchesType = !selectedType.value || doctor.type === selectedType.value
+    const matchesSpecialty = selectedSpecialty.value === 'all' || doctor.specialty === selectedSpecialty.value
+    const matchesType = selectedType.value === 'all' || doctor.type === selectedType.value
     
     return matchesSearch && matchesSpecialty && matchesType
   })
@@ -108,6 +122,7 @@ function openAddModal() {
       type: 'Doctor',
       status: 'Pending',
       avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
+      initials: 'ND',
       description: ''
     }
     doctors.value.push(newDoctor)
@@ -126,13 +141,18 @@ function saveDoctor() {
   if (isEditing.value) {
     const index = doctors.value.findIndex(d => d.id === currentDoctor.value.id)
     if (index !== -1) {
-      doctors.value[index] = { ...currentDoctor.value }
+      doctors.value[index] = { 
+        ...currentDoctor.value,
+        initials: currentDoctor.value.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+      }
     }
   } else {
+    // This path is technically handled by openAddModal now, but keeping for fallback
     const newDoctor = {
       ...currentDoctor.value,
       id: doctors.value.length + 1,
-      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`
+      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
+      initials: currentDoctor.value.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
     }
     doctors.value.push(newDoctor)
 
@@ -155,12 +175,12 @@ function toggleStatus(doctor: any) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-in fade-in duration-500">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Doctors</h1>
-        <p class="text-slate-500">Manage your organization's professionals.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Doctors</h1>
+        <p class="text-muted-foreground">Manage your organization's professionals.</p>
       </div>
       <Button @click="openAddModal">
         <Plus class="w-4 h-4 mr-2" />
@@ -169,176 +189,199 @@ function toggleStatus(doctor: any) {
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4">
+    <div class="bg-card p-4 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4">
       <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input 
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input 
           v-model="searchQuery"
           type="text" 
           placeholder="Search by name or email..." 
-          class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
+          class="pl-9"
+        />
       </div>
       <div class="flex gap-4">
-        <select 
-          v-model="selectedSpecialty"
-          class="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-        >
-          <option value="">All Specialties</option>
-          <option v-for="spec in specialties" :key="spec" :value="spec">{{ spec }}</option>
-        </select>
-        <select 
-          v-model="selectedType"
-          class="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-        >
-          <option value="">All Types</option>
-          <option v-for="type in types" :key="type" :value="type">{{ type }}</option>
-        </select>
+        <Select v-model="selectedSpecialty">
+          <SelectTrigger class="w-[180px]">
+            <SelectValue placeholder="All Specialties" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Specialties</SelectItem>
+            <SelectItem v-for="spec in specialties" :key="spec" :value="spec">{{ spec }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="selectedType">
+          <SelectTrigger class="w-[150px]">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem v-for="type in types" :key="type" :value="type">{{ type }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
 
     <!-- List -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-6 py-4 font-semibold text-slate-700">Professional</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Specialty</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Type</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Contact</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Status</th>
-              <th class="px-6 py-4 font-semibold text-slate-700 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="doctor in filteredDoctors" :key="doctor.id" class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <img :src="doctor.avatar" :alt="doctor.name" class="w-10 h-10 rounded-full object-cover border border-slate-200" />
-                  <div>
-                    <div class="font-medium text-slate-900">{{ doctor.name }}</div>
-                    <div class="text-xs text-slate-500">{{ doctor.category }}</div>
-                  </div>
+    <div class="rounded-md border bg-card shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Professional</TableHead>
+            <TableHead>Specialty</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Contact</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead class="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="doctor in filteredDoctors" :key="doctor.id">
+            <TableCell>
+              <div class="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage :src="doctor.avatar" :alt="doctor.name" />
+                  <AvatarFallback>{{ doctor.initials }}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div class="font-medium">{{ doctor.name }}</div>
+                  <div class="text-xs text-muted-foreground">{{ doctor.category }}</div>
                 </div>
-              </td>
-              <td class="px-6 py-4 text-slate-600">{{ doctor.specialty }}</td>
-              <td class="px-6 py-4">
-                <span 
-                  class="px-2.5 py-1 rounded-full text-xs font-medium"
-                  :class="doctor.type === 'Manager' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
-                >
-                  {{ doctor.type }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-slate-600">
-                <div class="flex flex-col gap-1 text-xs">
-                  <div class="flex items-center gap-1"><Mail class="w-3 h-3" /> {{ doctor.email }}</div>
-                  <div class="flex items-center gap-1"><Phone class="w-3 h-3" /> {{ doctor.phone }}</div>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <button 
-                  @click="toggleStatus(doctor)"
-                  class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
-                  :class="doctor.status === 'Active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                >
-                  {{ doctor.status }}
-                </button>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <button @click="openEditModal(doctor)" class="text-slate-400 hover:text-primary-600 transition-colors">
-                  <MoreHorizontal class="w-5 h-5" />
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div v-if="filteredDoctors.length === 0" class="p-8 text-center text-slate-500">
-        No doctors found matching your filters.
-      </div>
+              </div>
+            </TableCell>
+            <TableCell>{{ doctor.specialty }}</TableCell>
+            <TableCell>
+              <Badge :variant="doctor.type === 'Manager' ? 'default' : 'secondary'">
+                {{ doctor.type }}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <div class="flex flex-col gap-1 text-xs text-muted-foreground">
+                <div class="flex items-center gap-1"><Mail class="w-3 h-3" /> {{ doctor.email }}</div>
+                <div class="flex items-center gap-1"><Phone class="w-3 h-3" /> {{ doctor.phone }}</div>
+              </div>
+            </TableCell>
+            <TableCell>
+              <Badge 
+                variant="outline" 
+                class="cursor-pointer hover:bg-accent"
+                :class="doctor.status === 'Active' ? 'text-green-600 border-green-200 bg-green-50' : 'text-slate-500'"
+                @click="toggleStatus(doctor)"
+              >
+                {{ doctor.status }}
+              </Badge>
+            </TableCell>
+            <TableCell class="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal class="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem @click="openEditModal(doctor)">Edit Details</DropdownMenuItem>
+                  <DropdownMenuItem @click="toggleStatus(doctor)">
+                    {{ doctor.status === 'Active' ? 'Deactivate' : 'Activate' }}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
+          <TableRow v-if="filteredDoctors.length === 0">
+            <TableCell colspan="6" class="h-24 text-center text-muted-foreground">
+              No doctors found matching your filters.
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
 
-    <!-- Modal -->
-    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="isModalOpen = false"></div>
-      <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 class="font-semibold text-lg text-slate-900">{{ isEditing ? 'Edit Doctor' : 'Add New Doctor' }}</h3>
-          <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-600">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
+    <!-- Edit Modal -->
+    <Dialog :open="isModalOpen" @update:open="isModalOpen = $event">
+      <DialogContent class="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>{{ isEditing ? 'Edit Doctor' : 'Add New Doctor' }}</DialogTitle>
+          <DialogDescription>
+            Make changes to the doctor's profile here. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
         
-        <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-              <User class="w-8 h-8" />
-            </div>
-            <button class="text-sm text-primary-600 font-medium hover:text-primary-700">Upload Photo</button>
+        <div class="grid gap-4 py-4">
+          <div class="flex items-center gap-4 mb-2">
+            <Avatar class="h-16 w-16">
+              <AvatarImage :src="currentDoctor.avatar" />
+              <AvatarFallback><User class="h-8 w-8 text-muted-foreground" /></AvatarFallback>
+            </Avatar>
+            <Button variant="outline" size="sm">Upload Photo</Button>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-              <input v-model="currentDoctor.name" type="text" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <div class="col-span-2 space-y-2">
+              <Label for="name">Full Name</Label>
+              <Input id="name" v-model="currentDoctor.name" />
             </div>
             
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
-              <input v-model="currentDoctor.email" type="email" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <div class="col-span-2 space-y-2">
+              <Label for="email">Email</Label>
+              <Input id="email" type="email" v-model="currentDoctor.email" />
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-              <input v-model="currentDoctor.phone" type="tel" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <div class="space-y-2">
+              <Label for="phone">Phone</Label>
+              <Input id="phone" type="tel" v-model="currentDoctor.phone" />
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Category</label>
-              <select v-model="currentDoctor.category" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-                <option value="Psychologist">Psychologist</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="Psychiatrist">Psychiatrist</option>
-              </select>
+            <div class="space-y-2">
+              <Label for="category">Category</Label>
+              <Select v-model="currentDoctor.category">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Psychologist">Psychologist</SelectItem>
+                  <SelectItem value="Supervisor">Supervisor</SelectItem>
+                  <SelectItem value="Psychiatrist">Psychiatrist</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Specialty</label>
-              <select v-model="currentDoctor.specialty" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-                <option value="" disabled>Select Specialty</option>
-                <option v-for="spec in specialties" :key="spec" :value="spec">{{ spec }}</option>
-              </select>
+            <div class="col-span-2 space-y-2">
+              <Label for="specialty">Specialty</Label>
+              <Select v-model="currentDoctor.specialty">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="spec in specialties" :key="spec" :value="spec">{{ spec }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
-              <div class="flex gap-4">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" v-model="currentDoctor.type" value="Doctor" class="text-primary-600 focus:ring-primary-500">
-                  <span class="text-sm text-slate-700">Doctor</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" v-model="currentDoctor.type" value="Manager" class="text-primary-600 focus:ring-primary-500">
-                  <span class="text-sm text-slate-700">Manager</span>
-                </label>
-              </div>
+            <div class="col-span-2 space-y-2">
+              <Label>Type</Label>
+              <RadioGroup v-model="currentDoctor.type" class="flex gap-4">
+                <div class="flex items-center space-x-2">
+                  <RadioGroupItem id="type-doctor" value="Doctor" />
+                  <Label for="type-doctor" class="font-normal cursor-pointer">Doctor</Label>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <RadioGroupItem id="type-manager" value="Manager" />
+                  <Label for="type-manager" class="font-normal cursor-pointer">Manager</Label>
+                </div>
+              </RadioGroup>
             </div>
 
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Description</label>
-              <textarea v-model="currentDoctor.description" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+            <div class="col-span-2 space-y-2">
+              <Label for="description">Description</Label>
+              <Textarea id="description" v-model="currentDoctor.description" rows="3" />
             </div>
           </div>
         </div>
 
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-          <button @click="isModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900">Cancel</button>
-          <Button @click="saveDoctor">Save Doctor</Button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="outline" @click="isModalOpen = false">Cancel</Button>
+          <Button @click="saveDoctor">Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

@@ -118,14 +118,14 @@ const portalSchema = z.object({
 })
 
 const addPatientSchema = patientBasicsSchema
-  .merge(contactSchema)
-  .merge(clinicalContextSchema)
-  .merge(assignmentSchema)
-  .merge(emergencyContactSchema)
-  .merge(sessionDefaultsSchema)
-  .merge(billingSchema)
-  .merge(relatedPatientSchema)
-  .merge(portalSchema)
+  .and(contactSchema)
+  .and(clinicalContextSchema)
+  .and(assignmentSchema)
+  .and(emergencyContactSchema)
+  .and(sessionDefaultsSchema)
+  .and(billingSchema)
+  .and(relatedPatientSchema)
+  .and(portalSchema)
   .superRefine((data, ctx) => {
     if (data.enablePortalAccess && data.sendPortalInviteNow) {
       if (!data.email) {
@@ -870,7 +870,7 @@ const toggleSelection = (array: string[], value: string) => {
                 <div id="customInviteMessage">
                   <label class="block text-sm font-medium text-slate-700 mb-1">Custom Message (Optional)</label>
                   <textarea 
-                    v-model="form.customInviteMessage"
+                    v-model="form.customInviteMessage!"
                     rows="3"
                     placeholder="e.g. Welcome to our clinic! Here is how to prepare..."
                     class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors resize-none"
