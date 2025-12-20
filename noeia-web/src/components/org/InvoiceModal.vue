@@ -71,14 +71,21 @@ watch(() => props.isOpen, (newVal) => {
         form.value.date = new Date(props.invoice.date)
         form.value.toName = props.invoice.patient || 'Client Name'
         
-        // Mock items based on amount
-        const mockAmount = props.invoice.amount || 0
-        form.value.items = [
-           { id: '1', description: 'Professional Service', qty: 1, rate: Number((mockAmount / 1.21).toFixed(2)) }
-        ]
+        if (props.invoice.items && props.invoice.items.length > 0) {
+            // Deep copy to avoid mutating prop
+            form.value.items = JSON.parse(JSON.stringify(props.invoice.items))
+        } else {
+            const mockAmount = props.invoice.amount || 0
+            form.value.items = [
+               { id: '1', description: 'Professional Service', qty: 1, rate: Number((mockAmount / 1.21).toFixed(2)) }
+            ]
+        }
+
+        // Set tax rate from invoice if provided, otherwise default to 21
+        form.value.taxRate = props.invoice.taxRate !== undefined ? props.invoice.taxRate : 21
     }
   }
-})
+}, { immediate: true })
 
 // Sync sidebar selections to PDF view
 watch(() => form.value.selectedDoctor, (val) => {

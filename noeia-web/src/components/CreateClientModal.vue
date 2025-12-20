@@ -251,7 +251,7 @@ function handleOpenChange(val: boolean) {
                   <Shield class="w-5 h-5 text-muted-foreground" />
                   <span class="text-sm font-medium">Has Insurance?</span>
                 </div>
-                <Checkbox :checked="form.hasInsurance" @update:checked="(v: boolean) => form.hasInsurance = v" />
+                <Checkbox :checked="form.hasInsurance" @update:checked="(v: any) => form.hasInsurance = v as boolean" />
               </div>
             </div>
 
@@ -302,7 +302,7 @@ function handleOpenChange(val: boolean) {
                   <span class="block text-xs text-muted-foreground">Connect family members or partners</span>
                 </div>
               </div>
-              <Checkbox :checked="form.isLinked" @update:checked="(v: boolean) => form.isLinked = v" />
+              <Checkbox :checked="form.isLinked" @update:checked="(v: any) => form.isLinked = v as boolean" />
             </div>
 
             <div v-if="form.isLinked" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">

@@ -2,15 +2,14 @@
 import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { CheckIcon } from '@radix-icons/vue'
+import { CheckIcon, MinusIcon } from '@radix-icons/vue'
 import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui"
 import { cn } from "@/lib/utils"
 
-const props = defineProps<CheckboxRootProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<CheckboxRootProps & { class?: HTMLAttributes["class"], checked?: boolean | 'indeterminate' }>()
 const emits = defineEmits<CheckboxRootEmits>()
 
 const delegatedProps = reactiveOmit(props, "class")
-
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
@@ -23,7 +22,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
   >
     <CheckboxIndicator class="grid place-content-center text-current">
       <slot>
-        <CheckIcon class="h-4 w-4" />
+        <MinusIcon v-if="props.checked === 'indeterminate'" class="h-4 w-4" />
+        <CheckIcon v-else class="h-4 w-4" />
       </slot>
     </CheckboxIndicator>
   </CheckboxRoot>
