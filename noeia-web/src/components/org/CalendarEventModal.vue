@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Calendar, Clock, User, Users, AlignLeft, Trash2 } from 'lucide-vue-next'
+import { Calendar, Clock, User, Users, AlignLeft, Trash2, Link } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 
 const props = defineProps<{
   isOpen: boolean
@@ -14,26 +15,51 @@ const props = defineProps<{
   doctors: any[]
   patients: any[]
   rooms: any[]
+  existingSessions?: any[]
 }>()
 
 const emit = defineEmits(['close', 'save', 'delete'])
 
-const form = ref({
+// Define strict interface
+interface CalendarEventForm {
+  id: number | null
+  type: string
+  title: string
+  doctorId: string
+  patientId: string
+  location: string
+  roomId: string
+  date: string
+  startTime: string
+  endTime: string
+  description: string
+  hasExtras: boolean
+  extraDuration: string
+  extraAmount: string
+  linkedSessionId?: string
+}
+
+const form = ref<CalendarEventForm>({
   id: null,
-  type: 'Session', // Session, Meeting, Block
+  type: 'Session',
   title: '',
   doctorId: '',
   patientId: '',
-  location: 'Online', // Online, Offline
+  location: 'Online',
   roomId: '',
   date: '',
   startTime: '09:00',
   endTime: '10:00',
-  description: ''
+  description: '',
+  hasExtras: false,
+  extraDuration: '20',
+  extraAmount: '15',
+  linkedSessionId: ''
 })
 
 const eventTypes = [
   { value: 'Session', label: 'Session' },
+  { value: 'Documentation', label: 'Documentation' },
   { value: 'Meeting', label: 'Meeting' },
   { value: 'Block', label: 'Block Time' }
 ]
@@ -41,8 +67,15 @@ const eventTypes = [
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     if (props.event) {
-      // Edit mode
-      form.value = { ...props.event }
+      // Edit mode - strict boolean coercion for hasExtras
+      form.value = {
+        extraDuration: props.event.extraDuration?.toString() || '20',
+        extraAmount: props.event.extraAmount?.toString() || '15',
+        ...props.event,
+        // Override strict hasExtras from event to ensure boolean
+        hasExtras: props.event.hasExtras !== undefined ? !!props.event.hasExtras : false,
+        linkedSessionId: props.event.linkedSessionId?.toString() || ''
+      }
       // Ensure IDs are strings for selects
       form.value.doctorId = props.event.doctorId ? props.event.doctorId.toString() : ''
       form.value.patientId = props.event.patientId ? props.event.patientId.toString() : ''
@@ -59,13 +92,18 @@ watch(() => props.isOpen, (newVal) => {
         date: new Date().toISOString().split('T')[0] || '',
         startTime: '09:00',
         endTime: '10:00',
-        description: ''
+        description: '',
+        hasExtras: false,
+        extraDuration: '20',
+        extraAmount: '15',
+        linkedSessionId: ''
       }
     }
   }
 })
 
 const isSession = computed(() => form.value.type === 'Session')
+const isDocumentation = computed(() => form.value.type === 'Documentation')
 const isBlock = computed(() => form.value.type === 'Block')
 
 const filteredRooms = computed(() => {
@@ -236,6 +274,28 @@ function remove() {
               />
             </div>
           </div>
+        </div>
+
+        <!-- Documentation / Extras -->
+        <div v-if="isSession" class="rounded-lg border p-3 bg-muted/30 space-y-3">
+             <div class="flex items-center justify-between">
+                 <div class="space-y-0.5">
+                     <Label class="text-sm font-medium">Documentation Time</Label>
+                     <p class="text-[10px] text-muted-foreground">Add extra billable time for notes/admin.</p>
+                 </div>
+                 <Switch :checked="form.hasExtras" @update:checked="(val: boolean) => form.hasExtras = val" />
+             </div>
+             
+             <div v-if="form.hasExtras" class="grid grid-cols-2 gap-3 pt-1">
+                 <div class="space-y-1.5">
+                     <Label class="text-xs">Duration (mins)</Label>
+                     <Input v-model="form.extraDuration" type="number" class="h-8" />
+                 </div>
+                 <div class="space-y-1.5">
+                     <Label class="text-xs">Amount (€)</Label>
+                     <Input v-model="form.extraAmount" type="number" class="h-8" />
+                 </div>
+             </div>
         </div>
 
         <!-- Description -->

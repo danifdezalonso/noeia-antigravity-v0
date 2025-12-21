@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ChevronLeft, ChevronRight, Check, Plus } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Check, Plus, FileText } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -43,7 +43,7 @@ function toggleDoctor(id: number) {
 
 // Mock Events
 const events = ref([
-  { id: 1, doctorId: 1, type: 'Session', title: 'Laura P.', time: '10:00 - 11:00', startTime: '10:00', endTime: '11:00', day: 1, patientId: 5, location: 'Offline', roomId: 1 }, // Mon
+  { id: 1, doctorId: 1, type: 'Session', title: 'Laura P.', time: '10:00 - 11:00', startTime: '10:00', endTime: '11:00', day: 1, patientId: 5, location: 'Offline', roomId: 1, hasExtras: true }, // Mon
   { id: 2, doctorId: 2, type: 'Session', title: 'Hugo G.', time: '11:30 - 12:30', startTime: '11:30', endTime: '12:30', day: 1, patientId: 6, location: 'Online', roomId: null }, // Mon
   { id: 3, doctorId: 3, type: 'Session', title: 'Carlos R.', time: '15:00 - 16:00', startTime: '15:00', endTime: '16:00', day: 2, patientId: null, location: 'Online', roomId: null }, // Tue
   { id: 4, doctorId: 4, type: 'Session', title: 'Sofía D.', time: '09:00 - 09:45', startTime: '09:00', endTime: '09:45', day: 3, patientId: null, location: 'Offline', roomId: 2 }, // Wed
@@ -62,6 +62,10 @@ const hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '1
 
 const filteredEvents = computed(() => {
   return events.value.filter(event => selectedDoctors.value.includes(event.doctorId))
+})
+
+const existingSessions = computed(() => {
+  return events.value.filter(e => e.type === 'Session')
 })
 
 function getEventsForDayAndHour(dayIndex: number, hour: string) {
@@ -321,6 +325,7 @@ function isSlotSelected(dayIndex: number, hour: string) {
                     <AvatarFallback class="text-[6px] bg-black/10">{{ getDoctorById(event.doctorId)?.initials }}</AvatarFallback>
                 </Avatar>
                 <span class="truncate">{{ getDoctorById(event.doctorId)?.name }}</span>
+                <FileText v-if="event.hasExtras" class="w-2.5 h-2.5 ml-auto text-current opacity-70" />
               </div>
             </div>
             
@@ -337,6 +342,7 @@ function isSlotSelected(dayIndex: number, hour: string) {
       :doctors="doctors"
       :patients="patients"
       :rooms="rooms"
+      :existing-sessions="existingSessions"
       @close="isModalOpen = false"
       @save="handleSaveEvent"
       @delete="handleDeleteEvent"

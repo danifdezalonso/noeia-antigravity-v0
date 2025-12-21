@@ -41,6 +41,8 @@ import draggable from 'vuedraggable'
 import DatePicker from '@/components/DatePicker.vue'
 import { getLocalTimeZone, today } from '@internationalized/date'
 import type { DateValue } from '@internationalized/date'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Info } from 'lucide-vue-next'
 
 const { toast } = useToast()
 const isCreateInvoiceModalOpen = ref(false)
@@ -86,7 +88,7 @@ function resetColumns() {
 }
 
 // Mock Data
-const invoices = ref([
+const baseInvoices = ref([
   // Dec 2025 (Current Month)
   { id: 'INV-2501', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-12-20' },
   { id: 'INV-2502', patient: 'Michael Brown', patientInitials: 'MB', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-19' },
@@ -108,6 +110,23 @@ const invoices = ref([
   { id: 'INV-2511', patient: 'Thomas Anderson', patientInitials: 'TA', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-22' },
   { id: 'INV-2512', patient: 'Olivia Wilson', patientInitials: 'OW', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Pending', date: '2025-12-24' },
 ])
+
+const invoices = computed(() => {
+    return baseInvoices.value.map(inv => {
+        // Logic for Documentation (50% chance based on ID parity)
+        const hasDocumentation = (inv.id.charCodeAt(inv.id.length - 1) % 2 === 0)
+        const docAmount = hasDocumentation ? 50 : 0
+        const docCommission = docAmount * 0.30
+
+        return {
+            ...inv,
+            hasDocumentation,
+            docAmount,
+            docCommission,
+            totalAmount: inv.amount + docAmount
+        }
+    })
+})
 
 // Filters
 const searchQuery = ref('')
@@ -177,6 +196,11 @@ const doctorsData = computed(() => {
     const commission = inv.amount * 0.30
     doc.commissionDue += commission
     
+    if (inv.hasDocumentation) {
+        doc.commissionDue += inv.docCommission
+        doc.totalVolume += inv.docAmount
+    }
+
     doc.sessions.push({
         ...inv,
         commission
@@ -217,12 +241,39 @@ const isDoctorInvoiceModalOpen = ref(false)
 
 function openDoctorInvoiceModal(doc: any) {
     // Map doctor sessions to invoice items
-    const items = doc.sessions.map((sess: any) => ({
-        id: sess.id,
-        description: `Session with ${sess.patient} (${formatDate(sess.date)})`,
-        qty: 1,
-        rate: sess.commission // Rate is the commission amount
-    }))
+    const items: any[] = []
+    
+    doc.sessions.forEach((sess: any) => {
+        // Main session item
+        items.push({
+            id: sess.id,
+            description: `Session with ${sess.patient} (${formatDate(sess.date)})`,
+            qty: 1,
+            rate: sess.commission // Rate is the commission amount
+        })
+        
+        // Extra items
+        if (sess.extras && sess.extras.length > 0) {
+            sess.extras.forEach((extra: any, idx: number) => {
+                 items.push({
+                    id: `${sess.id}-extra-${idx}`,
+                    description: `${extra.description} - ${sess.patient}`,
+                    qty: 1,
+                    rate: extra.amount
+                })
+            })
+        }
+
+        // Documentation item
+        if (sess.hasDocumentation) {
+            items.push({
+                id: `${sess.id}-doc`,
+                description: `Documentation - ${sess.patient}`,
+                qty: 1,
+                rate: sess.docCommission // Rate is the commission amount for documentation
+            })
+        }
+    })
 
     selectedDoctorInvoice.value = {
         id: `COM-${new Date().getFullYear()}-${doc.id.split('-')[1] || '001'}`, // Mock ID
@@ -280,15 +331,15 @@ function sendReminder(invoice: any) {
 }
 
 const totalFilteredAmount = computed(() => {
-  return filteredInvoices.value.reduce((sum, inv) => sum + inv.amount, 0)
+  return filteredInvoices.value.reduce((sum, inv) => sum + inv.totalAmount, 0)
 })
 
 // Summary computed from ALL invoices, not filtered ones, to align with static top-level cards
 const summary = computed(() => {
-  const total = invoices.value.reduce((sum, inv) => sum + inv.amount, 0)
-  const paid = invoices.value.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.amount, 0)
-  const pending = invoices.value.filter(inv => inv.status === 'Pending').reduce((sum, inv) => sum + inv.amount, 0)
-  const overdue = invoices.value.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.amount, 0)
+  const total = invoices.value.reduce((sum, inv) => sum + inv.totalAmount, 0)
+  const paid = invoices.value.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.totalAmount, 0)
+  const pending = invoices.value.filter(inv => inv.status === 'Pending').reduce((sum, inv) => sum + inv.totalAmount, 0)
+  const overdue = invoices.value.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.totalAmount, 0)
   return { total, paid, pending, overdue }
 })
 
@@ -431,9 +482,9 @@ function openInvoiceModal(invoice: any) {
 }
 
 function handleSaveInvoice(updatedInvoice: any) {
-  const index = invoices.value.findIndex(inv => inv.id === updatedInvoice.id)
-  if (index !== -1) {
-    invoices.value[index] = { ...updatedInvoice }
+    const index = baseInvoices.value.findIndex(inv => inv.id === updatedInvoice.id)
+    if (index !== -1) {
+      baseInvoices.value[index] = { ...updatedInvoice }
     toast({
       title: "Invoice Updated",
       description: `Invoice ${updatedInvoice.id} has been successfully updated.`,
@@ -463,7 +514,7 @@ function handleShare(invoice: any) {
 }
 function handleCreateInvoice(newInvoice: any) {
   // Mock creation logic
-  invoices.value.unshift({
+  baseInvoices.value.unshift({
     id: newInvoice.id,
     patient: newInvoice.patient || 'Unknown',
     patientInitials: newInvoice.patient?.substring(0,2).toUpperCase() || 'UN',
@@ -671,22 +722,52 @@ function handleSaveEvent() {
                                                   <TableHead class="h-8 text-xs">Date</TableHead>
                                                   <TableHead class="h-8 text-xs">Patient</TableHead>
                                                   <TableHead class="h-8 text-xs text-right">Session Fee</TableHead>
+                                                  <TableHead class="h-8 text-xs text-right">Extras</TableHead>
                                                   <TableHead class="h-8 text-xs text-right">Commission (30%)</TableHead>
                                                   <TableHead class="h-8 text-xs text-center">Invoice</TableHead>
                                               </TableRow>
                                           </TableHeader>
                                           <TableBody>
-                                              <TableRow v-for="sess in doc.sessions" :key="sess.id" class="hover:bg-transparent">
+                                          <template v-for="sess in doc.sessions" :key="sess.id">
+                                              <!-- Session Row -->
+                                              <TableRow class="hover:bg-transparent border-0">
                                                   <TableCell class="py-2 text-xs text-muted-foreground">{{ formatDate(sess.date) }}</TableCell>
                                                   <TableCell class="py-2 text-xs font-medium">{{ sess.patient }}</TableCell>
                                                   <TableCell class="py-2 text-xs text-right text-muted-foreground">€{{ sess.amount }}</TableCell>
+                                                  <TableCell class="py-2 text-xs text-right text-muted-foreground">
+                                                    <span v-if="sess.extrasTotal > 0" class="text-orange-600 font-medium text-[10px] bg-orange-50 px-1 py-0.5 rounded">
+                                                        +€{{ sess.extrasTotal.toFixed(2) }}
+                                                    </span>
+                                                    <span v-else>-</span>
+                                                  </TableCell>
                                                   <TableCell class="py-2 text-xs text-right font-medium">€{{ sess.commission.toFixed(2) }}</TableCell>
                                                   <TableCell class="py-2 text-xs text-center">
-                                                      <a href="#" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
-                                                          Preview <ExternalLink class="ml-1 h-3 w-3" />
-                                                      </a>
+                                                      <div class="flex items-center justify-center gap-2">
+                                                        <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">Session</span>
+                                                        <a href="#" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
+                                                            <ExternalLink class="h-3 w-3" />
+                                                        </a>
+                                                      </div>
                                                   </TableCell>
                                               </TableRow>
+
+                                              <!-- Documentation Row (Conditional) -->
+                                              <TableRow v-if="sess.hasDocumentation" class="hover:bg-transparent border-t-0 bg-slate-50/50">
+                                                  <TableCell class="py-1 text-xs text-muted-foreground border-t-0 pl-6">
+                                                      <div class="w-3 h-3 border-l-2 border-b-2 border-slate-300 rounded-bl-sm inline-block mr-2 relative top-[-2px]"></div>
+                                                      <span class="opacity-0">{{ formatDate(sess.date) }}</span>
+                                                  </TableCell>
+                                                  <TableCell class="py-1 text-xs text-muted-foreground border-t-0 font-medium pl-6">
+                                                     Documentation
+                                                  </TableCell>
+                                                  <TableCell class="py-1 text-xs text-right text-muted-foreground border-t-0">€{{ sess.docAmount }}</TableCell>
+                                                  <TableCell class="py-1 text-xs text-right text-muted-foreground border-t-0">-</TableCell>
+                                                  <TableCell class="py-1 text-xs text-right font-medium border-t-0">€{{ sess.docCommission.toFixed(2) }}</TableCell>
+                                                  <TableCell class="py-1 text-xs text-center border-t-0">
+                                                       <span class="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-100">Doc</span>
+                                                  </TableCell>
+                                              </TableRow>
+                                          </template>
                                           </TableBody>
                                       </Table>
                                   </div>
@@ -956,11 +1037,18 @@ function handleSaveEvent() {
 
                 <!-- Patient -->
                 <template v-else-if="col.id === 'patient'">
-                   <div class="flex items-center gap-3">
-                      <Avatar class="h-8 w-8">
-                         <AvatarFallback class="bg-primary-50 text-primary-700 text-xs">{{ invoice.patientInitials }}</AvatarFallback>
-                      </Avatar>
-                      <div class="font-medium text-sm">{{ invoice.patient }}</div>
+                   <div class="flex flex-col gap-1">
+                       <div class="flex items-center gap-3">
+                          <Avatar class="h-8 w-8">
+                             <AvatarFallback class="bg-primary-50 text-primary-700 text-xs">{{ invoice.patientInitials }}</AvatarFallback>
+                          </Avatar>
+                          <div class="font-medium text-sm">{{ invoice.patient }}</div>
+                       </div>
+                       <!-- Nested Documentation Label -->
+                       <div v-if="invoice.hasDocumentation" class="flex items-center text-muted-foreground pl-11">
+                          <div class="w-3 h-3 border-l-2 border-b-2 border-slate-300 rounded-bl-sm inline-block mr-2 relative top-[-2px]"></div>
+                          <span class="font-medium text-xs">Documentation included</span>
+                      </div>
                    </div>
                 </template>
 
@@ -981,7 +1069,32 @@ function handleSaveEvent() {
 
                 <!-- Amount -->
                 <template v-else-if="col.id === 'amount'">
-                   <span class="font-medium text-right">€{{ invoice.amount }}</span>
+                   <div class="flex items-center justify-end gap-2">
+                       <TooltipProvider v-if="invoice.hasDocumentation">
+                           <Tooltip>
+                               <TooltipTrigger as-child>
+                                   <Info class="w-3.5 h-3.5 text-muted-foreground cursor-help opacity-70 hover:opacity-100" />
+                               </TooltipTrigger>
+                               <TooltipContent>
+                                   <div class="flex flex-col gap-1 text-xs">
+                                       <div class="flex justify-between gap-4">
+                                           <span class="text-muted-foreground">Session:</span>
+                                           <span>€{{ invoice.amount }}</span>
+                                       </div>
+                                       <div class="flex justify-between gap-4">
+                                           <span class="text-muted-foreground">Documentation:</span>
+                                           <span>€{{ invoice.docAmount }}</span>
+                                       </div>
+                                       <div class="border-t pt-1 mt-1 flex justify-between gap-4 font-bold">
+                                           <span>Total:</span>
+                                           <span>€{{ invoice.totalAmount }}</span>
+                                       </div>
+                                   </div>
+                               </TooltipContent>
+                           </Tooltip>
+                       </TooltipProvider>
+                       <span class="font-medium text-right">€{{ invoice.totalAmount }}</span>
+                   </div>
                 </template>
 
                 <!-- Status -->
