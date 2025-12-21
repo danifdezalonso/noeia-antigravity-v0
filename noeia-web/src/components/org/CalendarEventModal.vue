@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { Calendar, Clock, User, Users, AlignLeft, Trash2, Link } from 'lucide-vue-next'
+import { Calendar, Clock, User, Users, AlignLeft, Trash2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -103,7 +103,7 @@ watch(() => props.isOpen, (newVal) => {
 })
 
 const isSession = computed(() => form.value.type === 'Session')
-const isDocumentation = computed(() => form.value.type === 'Documentation')
+
 const isBlock = computed(() => form.value.type === 'Block')
 
 const filteredRooms = computed(() => {
