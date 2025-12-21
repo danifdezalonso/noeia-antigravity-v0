@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { 
   Sparkles, 
   Info, 
@@ -10,7 +10,11 @@ import {
   CheckCircle2,
   Circle,
   ExternalLink,
-  Maximize2
+  Maximize2,
+  Plus,
+  Trash2,
+  CheckSquare,
+  StickyNote
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,8 +23,39 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 
 type PanelType = 'ai' | 'quick_start' | 'notebooks' | 'docs' | 'help' | null
+type TabType = 'notes' | 'todo'
 
 const activePanel = ref<PanelType>(null)
+const activeTab = ref<TabType>('notes')
+
+// Notes State
+const noteContent = ref('')
+
+// To-Do State
+interface Task {
+  id: number
+  text: string
+  completed: boolean
+}
+const tasks = ref<Task[]>([])
+const newTask = ref('')
+
+// Load from LocalStorage
+onMounted(() => {
+  const savedNote = localStorage.getItem('noeia-scratchpad-note')
+  if (savedNote) noteContent.value = savedNote
+  
+  const savedTasks = localStorage.getItem('noeia-scratchpad-tasks')
+  if (savedTasks) tasks.value = JSON.parse(savedTasks)
+})
+
+// Save watcher
+watch(noteContent, (newVal) => {
+  localStorage.setItem('noeia-scratchpad-note', newVal)
+})
+watch(tasks, (newVal) => {
+  localStorage.setItem('noeia-scratchpad-tasks', JSON.stringify(newVal))
+}, { deep: true })
 
 function togglePanel(panel: PanelType) {
   if (activePanel.value === panel) {
@@ -28,6 +63,25 @@ function togglePanel(panel: PanelType) {
   } else {
     activePanel.value = panel
   }
+}
+
+function addTask() {
+  if (!newTask.value.trim()) return
+  tasks.value.push({
+    id: Date.now(),
+    text: newTask.value,
+    completed: false
+  })
+  newTask.value = ''
+}
+
+function removeTask(id: number) {
+  tasks.value = tasks.value.filter(t => t.id !== id)
+}
+
+function toggleTask(id: number) {
+  const task = tasks.value.find(t => t.id === id)
+  if (task) task.completed = !task.completed
 }
 
 // Mock Data for Quick Start
@@ -52,14 +106,14 @@ const quickStartSteps = [
         <!-- Panel Header -->
         <div class="h-14 flex items-center justify-between px-6 border-b shrink-0 bg-background">
           <h3 class="font-semibold text-base flex items-center gap-2">
-            <Sparkles v-if="activePanel === 'ai'" class="w-4 h-4 text-orange-500" />
-            <span v-if="activePanel === 'ai'">Noeia AI</span>
+            <Sparkles v-if="activePanel === 'ai'" class="w-4 h-4 text-primary" />
+            <span v-if="activePanel === 'ai'">NoeIA</span>
             
-            <span v-if="activePanel === 'quick_start'" class="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded text-xs font-bold">3</span>
+            <span v-if="activePanel === 'quick_start'" class="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-xs font-bold">3</span>
             <span v-if="activePanel === 'quick_start'">Quick start</span>
 
             <Notebook v-if="activePanel === 'notebooks'" class="w-4 h-4 text-muted-foreground" />
-            <span v-if="activePanel === 'notebooks'">My scratchpad</span>
+            <span v-if="activePanel === 'notebooks'">My Planner</span>
 
             <Info v-if="activePanel === 'docs'" class="w-4 h-4" />
             <span v-if="activePanel === 'docs'">Documentation</span>
@@ -83,45 +137,45 @@ const quickStartSteps = [
           <!-- AI Panel Content -->
           <div v-if="activePanel === 'ai'" class="p-8 flex flex-col items-center text-center space-y-8 h-full max-w-2xl mx-auto w-full">
              <div class="mt-16 mb-6 relative">
-               <div class="absolute inset-0 bg-orange-500 blur-3xl opacity-10 rounded-full"></div>
+               <div class="absolute inset-0 bg-primary blur-3xl opacity-10 rounded-full"></div>
                <Sparkles class="w-20 h-20 text-slate-800 relative z-10" />
              </div>
              
              <div class="space-y-3 max-w-sm mx-auto">
-               <h2 class="text-2xl font-bold tracking-tight">What do you want to know today?</h2>
-               <p class="text-muted-foreground">Build something people want.</p>
+               <h2 class="text-2xl font-bold tracking-tight">How can I help you today?</h2>
+               <p class="text-muted-foreground">Your intelligent practice assistant.</p>
              </div>
 
              <div class="w-full space-y-4 mt-8">
                <div class="relative w-full shadow-lg rounded-lg">
                  <Input 
-                   placeholder="Ask a question / for commands" 
-                   class="pr-12 h-14 text-base bg-background border-muted-foreground/20 rounded-lg focus-visible:ring-offset-2 focus-visible:ring-orange-500" 
+                   placeholder="Ask about a patient, session, or schedule..." 
+                   class="pr-12 h-14 text-base bg-background border-muted-foreground/20 rounded-lg focus-visible:ring-offset-2 focus-visible:ring-primary" 
                  />
-                 <Button size="icon" class="absolute right-1.5 top-1.5 h-11 w-11 bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-colors">
+                 <Button size="icon" class="absolute right-1.5 top-1.5 h-11 w-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md transition-colors">
                    <Send class="w-5 h-5" />
                  </Button>
                </div>
                
                <div class="flex flex-wrap gap-2 justify-center pt-2">
                   <Button variant="outline" size="sm" class="h-8 text-xs bg-background/50 border-dashed hover:bg-background hover:border-solid transition-all">
-                     <Sparkles class="w-3 h-3 mr-1.5 text-orange-500" />
-                     Product analytics
+                     <Sparkles class="w-3 h-3 mr-1.5 text-primary" />
+                     Patient Trends
                   </Button>
                   <Button variant="outline" size="sm" class="h-8 text-xs bg-background/50 border-dashed hover:bg-background hover:border-solid transition-all">
-                     @ My App Dashboard
+                     @ Schedule Summary
                   </Button>
                </div>
              </div>
 
              <div class="w-full pt-12 mt-auto pb-4">
-               <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 text-center">Try Noeia AI for...</h4>
+               <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 text-center">Try NoeIA for...</h4>
                <div class="flex flex-wrap gap-2 justify-center">
-                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Product analytics</Badge>
-                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">SQL</Badge>
-                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Session replay</Badge>
-                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Feature flags</Badge>
-                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Experiments</Badge>
+                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Clinical Insights</Badge>
+                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Search Records</Badge>
+                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Summarize Notes</Badge>
+                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Billing Status</Badge>
+                 <Badge variant="secondary" class="cursor-pointer hover:bg-background hover:shadow-sm px-3 py-1.5 font-normal border transition-all">Treatment Plans</Badge>
                </div>
              </div>
           </div>
@@ -142,7 +196,7 @@ const quickStartSteps = [
                         <Progress :model-value="quickStartProgress" class="h-2.5 bg-slate-200" />
                      </div>
                   </div>
-                  <div class="h-20 w-20 bg-orange-100 rounded-xl flex items-center justify-center text-4xl shadow-sm">
+                  <div class="h-20 w-20 bg-primary/10 rounded-xl flex items-center justify-center text-4xl shadow-sm">
                      🦔
                   </div>
                </div>
@@ -154,12 +208,12 @@ const quickStartSteps = [
                  <div 
                     v-for="step in quickStartSteps" 
                     :key="step.id" 
-                    class="flex items-center gap-4 p-4 rounded-xl border bg-card hover:border-orange-200 hover:shadow-md transition-all cursor-pointer group"
+                    class="flex items-center gap-4 p-4 rounded-xl border bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
                     :class="{ 'bg-slate-50/50 border-transparent': step.completed }"
                  >
                     <div class="shrink-0">
                       <CheckCircle2 v-if="step.completed" class="w-6 h-6 text-green-500 fill-green-100" />
-                      <Circle v-else class="w-6 h-6 text-muted-foreground group-hover:text-orange-500 transition-colors" />
+                      <Circle v-else class="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                     <span class="text-base font-medium" :class="{ 'text-muted-foreground line-through decoration-slate-300': step.completed }">{{ step.title }}</span>
                  </div>
@@ -167,30 +221,78 @@ const quickStartSteps = [
             </div>
           </div>
 
-          <!-- Notebooks Content -->
-          <div v-if="activePanel === 'notebooks'" class="p-6 space-y-6 h-full flex flex-col bg-background w-full">
-             <div class="bg-blue-50/50 border border-blue-100 rounded-lg p-4 space-y-3">
-                <p class="text-sm text-blue-700 leading-relaxed">This is your scratchpad. It is only visible to you and is persisted only in this browser. It's a great place to gather ideas before turning into a saved Notebook!</p>
-                <Button variant="outline" size="sm" class="w-full justify-start h-9 bg-white hover:bg-blue-50 text-blue-700 border-blue-200">
-                   Convert to notebook
-                </Button>
+          <!-- Notebooks Content (Replaced with Notes/ToDo) -->
+          <div v-if="activePanel === 'notebooks'" class="flex flex-col h-full bg-background w-full">
+             <!-- Tabs -->
+             <div class="flex border-b bg-slate-50/50">
+                <button 
+                  @click="activeTab = 'notes'"
+                  class="flex-1 py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center gap-2"
+                  :class="activeTab === 'notes' ? 'border-amber-400 text-amber-700 bg-amber-50/50' : 'border-transparent text-muted-foreground hover:bg-slate-100'"
+                >
+                  <StickyNote class="w-4 h-4" /> Notes
+                </button>
+                <button 
+                  @click="activeTab = 'todo'"
+                  class="flex-1 py-3 text-sm font-medium border-b-2 transition-colors flex items-center justify-center gap-2"
+                  :class="activeTab === 'todo' ? 'border-blue-500 text-blue-700 bg-blue-50/50' : 'border-transparent text-muted-foreground hover:bg-slate-100'"
+                >
+                  <CheckSquare class="w-4 h-4" /> To-Do
+                </button>
              </div>
-             
-             <div class="flex-1 outline-none space-y-4">
-                <input 
-                  type="text" 
-                  value="Untitled" 
-                  class="text-3xl font-bold text-muted-foreground/60 w-full bg-transparent border-none focus:ring-0 p-0 placeholder:text-muted-foreground/30"
-                />
-                <textarea 
-                    class="w-full h-full resize-none bg-transparent border-none focus:ring-0 p-0 text-base leading-relaxed placeholder:text-muted-foreground/40 font-mono text-slate-700" 
-                    placeholder="Start typing..."
-                ></textarea>
+
+             <!-- Notes View -->
+             <div v-if="activeTab === 'notes'" class="flex-1 p-6 bg-[#fdfbf6]">
+                <div class="h-full bg-yellow-100/40 rounded-lg border border-yellow-200 shadow-sm p-1 relative group">
+                   <div class="absolute -top-3 left-6 w-4 h-12 bg-yellow-200/50 -rotate-2 backdrop-blur-sm border border-yellow-300"></div>
+                   <textarea 
+                      v-model="noteContent"
+                      class="w-full h-full bg-transparent border-none focus:ring-0 p-4 text-slate-700 leading-relaxed resize-none font-medium placeholder:text-yellow-700/30"
+                      placeholder="Post a note here..."
+                   ></textarea>
+                </div>
              </div>
-             
-             <div class="flex justify-end pt-4 border-t">
-                <div class="h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer hover:scale-110 transition-transform">
-                   <CheckCircle2 class="w-5 h-5" />
+
+             <!-- To-Do View -->
+             <div v-if="activeTab === 'todo'" class="flex-1 p-6 flex flex-col gap-4 bg-slate-50/30">
+                <div class="flex gap-2">
+                   <Input 
+                    v-model="newTask" 
+                    @keyup.enter="addTask"
+                    placeholder="Add a new task..." 
+                    class="bg-white"
+                   />
+                   <Button @click="addTask" size="icon" variant="secondary">
+                      <Plus class="w-4 h-4" />
+                   </Button>
+                </div>
+                
+                <div class="space-y-2 overflow-y-auto pr-1">
+                   <div v-if="tasks.length === 0" class="text-center py-8 text-muted-foreground text-sm italic">
+                      No tasks yet. Stay organized!
+                   </div>
+                   <div 
+                      v-for="task in tasks" 
+                      :key="task.id"
+                      class="group flex items-center gap-3 p-3 bg-white rounded-lg border shadow-sm hover:border-blue-200 transition-all"
+                   >
+                      <button @click="toggleTask(task.id)" class="shrink-0 text-slate-400 hover:text-blue-500 transition-colors">
+                         <CheckCircle2 v-if="task.completed" class="w-5 h-5 text-blue-500 fill-blue-50" />
+                         <Circle v-else class="w-5 h-5" />
+                      </button>
+                      <span 
+                        class="flex-1 text-sm font-medium text-slate-700 transition-all"
+                        :class="{ 'line-through text-slate-400': task.completed }"
+                      >
+                        {{ task.text }}
+                      </span>
+                      <button 
+                        @click="removeTask(task.id)"
+                        class="opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all p-1"
+                      >
+                         <Trash2 class="w-4 h-4" />
+                      </button>
+                   </div>
                 </div>
              </div>
           </div>
@@ -241,14 +343,14 @@ const quickStartSteps = [
 
           <div 
              class="h-8 w-8 rounded-md flex items-center justify-center transition-colors relative"
-             :class="activePanel === 'ai' ? 'text-orange-600' : 'text-slate-500 group-hover:text-foreground'"
+             :class="activePanel === 'ai' ? 'text-primary' : 'text-slate-500 group-hover:text-foreground'"
           >
             <Sparkles class="w-5 h-5 fill-current" />
           </div>
           <div class="writing-mode-vertical text-[10px] font-medium tracking-wide transition-colors whitespace-nowrap py-1 relative"
-             :class="activePanel === 'ai' ? 'text-orange-600' : 'text-muted-foreground group-hover:text-foreground'"
+             :class="activePanel === 'ai' ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'"
           >
-            Noeia AI
+            NoeIA
           </div>
         </button>
 
@@ -263,11 +365,11 @@ const quickStartSteps = [
           ></div>
 
           <div class="relative h-8 w-8 rounded-md flex items-center justify-center transition-colors"
-             :class="activePanel === 'quick_start' ? 'text-orange-700' : 'text-orange-600'"
+             :class="activePanel === 'quick_start' ? 'text-primary' : 'text-primary'"
           >
             <div 
-               class="absolute inset-0 rounded-full border-2 border-orange-500 opacity-20"
-               :class="{ 'opacity-100 bg-orange-100': activePanel === 'quick_start' }"
+               class="absolute inset-0 rounded-full border-2 border-primary opacity-20"
+               :class="{ 'opacity-100 bg-primary/10': activePanel === 'quick_start' }"
             ></div>
             <span class="text-xs font-bold font-mono relative z-10">3</span>
           </div>
@@ -301,7 +403,7 @@ const quickStartSteps = [
           <div class="writing-mode-vertical text-[10px] font-medium tracking-wide transition-colors whitespace-nowrap py-1 relative"
              :class="activePanel === 'notebooks' ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'"
           >
-            Notebooks
+            My Planner
           </div>
         </button>
 

@@ -3,7 +3,7 @@ import { ref, computed, reactive } from 'vue'
 import { 
   Search, Download, CheckCircle, AlertCircle, Clock, MoreHorizontal, 
   FileText, Share2, Printer, Eye, EyeOff, Maximize2, Plus, 
-  Settings2, ChevronUp, ChevronDown, User, Bell 
+  Settings2, GripVertical, User, Bell, ChevronRight, ChevronDown, ExternalLink
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,18 +27,33 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { useToast } from '@/components/ui/toast/use-toast'
 import InvoiceModal from '@/components/org/InvoiceModal.vue'
 import BillingTrendChart from '@/components/org/BillingTrendChart.vue'
 import BillingDetailChart from '@/components/org/BillingDetailChart.vue'
 import CalendarEventModal from '@/components/org/CalendarEventModal.vue'
+import draggable from 'vuedraggable'
+import DatePicker from '@/components/DatePicker.vue'
+import { getLocalTimeZone, today } from '@internationalized/date'
+import type { DateValue } from '@internationalized/date'
 
 const { toast } = useToast()
 const isCreateInvoiceModalOpen = ref(false)
 const isEventModalOpen = ref(false)
+const expandedDoctorIds = ref<Set<string>>(new Set())
+
+function toggleDoctorExpansion(docId: string) {
+  if (expandedDoctorIds.value.has(docId)) {
+    expandedDoctorIds.value.delete(docId)
+  } else {
+    expandedDoctorIds.value.add(docId)
+  }
+}
 
 // Table Columns Customization
 const defaultColumns = [
@@ -54,33 +69,17 @@ const defaultColumns = [
 const columns = ref([...defaultColumns.map(c => ({...c}))])
 
 const visibleColumns = computed(() => {
-  return columns.value
-    .filter(c => c.visible)
-    .sort((a, b) => a.order - b.order)
+  return columns.value.filter(c => c.visible)
+  // No need to sort if we rely on array order from draggable
 })
 
-function toggleColumn(id: string, checked: boolean) {
+function toggleColumn(id: string) {
   const col = columns.value.find(c => c.id === id)
-  if (col) col.visible = checked
+  if (col) col.visible = !col.visible
 }
 
 
-function moveColumn(index: number, direction: -1 | 1) {
-  const newIndex = index + direction
-  if (newIndex >= 0 && newIndex < columns.value.length) {
-    const colA = columns.value[index]
-    const colB = columns.value[newIndex]
-    
-    // Safety check to satisfy TS
-    if (colA && colB) {
-      columns.value[index] = colB
-      columns.value[newIndex] = colA
-      
-      // Update order
-      columns.value.forEach((col, idx) => col.order = idx)
-    }
-  }
-}
+// Removed moveColumn in favor of draggable
 
 function resetColumns() {
   columns.value = defaultColumns.map(c => ({...c}))
@@ -88,18 +87,39 @@ function resetColumns() {
 
 // Mock Data
 const invoices = ref([
-  { id: 'INV-001', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2023-10-25' },
-  { id: 'INV-002', patient: 'Michael Brown', patientInitials: 'MB', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2023-10-24' },
-  { id: 'INV-003', patient: 'Emma Wilson', patientInitials: 'EW', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 150, status: 'Paid', date: '2023-10-23' },
-  { id: 'INV-004', patient: 'David Lee', patientInitials: 'DL', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 110, status: 'Overdue', date: '2023-10-15' },
-  { id: 'INV-005', patient: 'Laura Pérez', patientInitials: 'LP', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2023-10-22' },
-  { id: 'INV-006', patient: 'Hugo García', patientInitials: 'HG', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2023-10-21' },
+  // Dec 2025 (Current Month)
+  { id: 'INV-2501', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-12-20' },
+  { id: 'INV-2502', patient: 'Michael Brown', patientInitials: 'MB', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-19' },
+  { id: 'INV-2503', patient: 'Emma Wilson', patientInitials: 'EW', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 150, status: 'Paid', date: '2025-12-18' },
+  { id: 'INV-2504', patient: 'David Lee', patientInitials: 'DL', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 110, status: 'Overdue', date: '2025-12-05' },
+  { id: 'INV-2505', patient: 'Laura Pérez', patientInitials: 'LP', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-12-15' },
+  { id: 'INV-2506', patient: 'Hugo García', patientInitials: 'HG', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-14' },
+  { id: 'INV-2507', patient: 'Sofia Martinez', patientInitials: 'SM', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 135, status: 'Paid', date: '2025-12-12' },
+  { id: 'INV-2508', patient: 'James Chen', patientInitials: 'JC', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 200, status: 'Pending', date: '2025-12-10' },
+  { id: 'INV-2509', patient: 'Emily Davis', patientInitials: 'ED', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Overdue', date: '2025-12-01' },
+  { id: 'INV-2510', patient: 'Daniel Kim', patientInitials: 'DK', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 95, status: 'Paid', date: '2025-12-08' },
+  
+  // Nov 2025 (Previous Month)
+  { id: 'INV-2490', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-11-28' },
+  { id: 'INV-2491', patient: 'Lucas Silva', patientInitials: 'LS', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 150, status: 'Paid', date: '2025-11-25' },
+  { id: 'INV-2492', patient: 'Maria Garcia', patientInitials: 'MG', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 110, status: 'Overdue', date: '2025-11-15' },
+  
+  // Future / Pending
+  { id: 'INV-2511', patient: 'Thomas Anderson', patientInitials: 'TA', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-22' },
+  { id: 'INV-2512', patient: 'Olivia Wilson', patientInitials: 'OW', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Pending', date: '2025-12-24' },
 ])
 
 // Filters
 const searchQuery = ref('')
 const selectedDoctor = ref('all')
 const selectedStatus = ref('all')
+
+// Date State
+const todayObj = today(getLocalTimeZone())
+const firstDayObj = todayObj.set({ day: 1 })
+
+const startDate = ref<DateValue | undefined>(firstDayObj)
+const endDate = ref<DateValue | undefined>(todayObj)
 
 const doctors = ['Dr. Ana Ruiz', 'Dr. Marc Vidal', 'Dr. Júlia Serra', 'Dr. Omar López']
 const statuses = ['Paid', 'Pending', 'Overdue']
@@ -111,13 +131,145 @@ const filteredInvoices = computed(() => {
     const matchesDoctor = selectedDoctor.value === 'all' || inv.doctor === selectedDoctor.value
     const matchesStatus = selectedStatus.value === 'all' || inv.status === selectedStatus.value
     
-    return matchesSearch && matchesDoctor && matchesStatus
+    // Date Range Filter
+    let matchesDate = true
+    if (startDate.value && endDate.value) {
+       const invDate = inv.date
+       const startStr = startDate.value.toString()
+       const endStr = endDate.value.toString()
+       matchesDate = invDate >= startStr && invDate <= endStr
+    } else if (startDate.value) {
+       const invDate = inv.date
+       const startStr = startDate.value.toString()
+       matchesDate = invDate >= startStr
+    }
+
+    return matchesSearch && matchesDoctor && matchesStatus && matchesDate
   })
 })
 
 const pendingInvoicesList = computed(() => {
   return invoices.value.filter(inv => inv.status === 'Pending')
 })
+
+// --- DOCTOR VIEW LOGIC ---
+const doctorsData = computed(() => {
+  // Aggregate invoices by doctor
+  const map = new Map()
+  
+  invoices.value.forEach(inv => {
+    if (!map.has(inv.doctor)) {
+      map.set(inv.doctor, {
+        id: inv.doctor.replace(/\s+/g, '-').toLowerCase(),
+        name: inv.doctor,
+        initials: inv.doctorInitials,
+        totalVolume: 0, 
+        commissionDue: 0,
+        status: 'Unbilled', // Mock status: Unbilled, Billed, Paid
+        sessions: []
+      })
+    }
+    
+    const doc = map.get(inv.doctor)
+    doc.totalVolume += inv.amount
+    
+    // Commission is 30% of session fee
+    const commission = inv.amount * 0.30
+    doc.commissionDue += commission
+    
+    doc.sessions.push({
+        ...inv,
+        commission
+    })
+  })
+  
+  // Convert to array and add mock status logic
+  return Array.from(map.values()).map((doc: any) => {
+    // Mock logic initial:
+    // Dr. Ana -> 'Billed' (Using 'Pending' color)
+    // Dr. Marc -> 'Paid' (Green)
+    // Others -> 'Unbilled' (Gray/Blue)
+    let initialStatus = 'Unbilled'
+    if (doc.name.includes('Ana')) initialStatus = 'Billed'
+    else if (doc.name.includes('Marc')) initialStatus = 'Paid'
+    
+    // Apply override if exists, otherwise initial
+    doc.status = doctorsStatusOverrides.value[doc.id] || initialStatus
+    
+    return doc
+  })
+})
+
+const totalCommission = computed(() => doctorsData.value.reduce((sum: number, d: any) => sum + d.commissionDue, 0))
+const pendingCommission = computed(() => doctorsData.value.filter((d: any) => d.status === 'Billed').reduce((sum: number, d: any) => sum + d.commissionDue, 0))
+
+function handleShareDoctorBill(doc: any) {
+    toast({
+        title: "Bill Shared",
+        description: `Commission invoice sent to ${doc.name} via email.`,
+        duration: 3000
+    })
+}
+
+// Doctor Invoice Modal Actions
+const selectedDoctorInvoice = ref<any>(null)
+const isDoctorInvoiceModalOpen = ref(false)
+
+function openDoctorInvoiceModal(doc: any) {
+    // Map doctor sessions to invoice items
+    const items = doc.sessions.map((sess: any) => ({
+        id: sess.id,
+        description: `Session with ${sess.patient} (${formatDate(sess.date)})`,
+        qty: 1,
+        rate: sess.commission // Rate is the commission amount
+    }))
+
+    selectedDoctorInvoice.value = {
+        id: `COM-${new Date().getFullYear()}-${doc.id.split('-')[1] || '001'}`, // Mock ID
+        date: new Date().toISOString().split('T')[0],
+        patient: doc.name, // "Bill To" in modal
+        items: items,
+        amount: doc.commissionDue,
+        status: doc.status
+    }
+    isDoctorInvoiceModalOpen.value = true
+}
+
+function handleSaveDoctorInvoice(updatedInvoice: any) {
+    // Mock save
+    toast({
+        title: "Commission Details Updated",
+        description: `Invoice for ${updatedInvoice.patient} updated.`,
+    })
+    isDoctorInvoiceModalOpen.value = false
+}
+
+
+
+// Status Management
+function updateDoctorStatus(doc: any, newStatus: string) {
+    if (doc.status === newStatus) return
+    
+    // In a real app we would update the store/backend here
+    // For mock, we'll try to update the computed source if possible, 
+    // but since it's computed from invoices, we might need a workaround or just show toast.
+    // Actually, doctorsData is computed, so we can't mutate it directly permanently without changing invoices.
+    // However, for the UI demo, we can just update the local reactive object if possible or force a re-calc.
+    // A better approach for the mock is to maintain a separate map of overrides.
+    
+    // Since doctorsData is re-computed on every render/dependency change, directly mutating the 'doc' object 
+    // returned by the computed property might work temporarily until re-evaluation, or might warn.
+    // Let's use a simpler approach: `doctorsStatusOverrides` map.
+    
+    doctorsStatusOverrides.value[doc.id] = newStatus
+    
+    toast({
+        title: "Status Updated",
+        description: `Doctor ${doc.name} marked as ${newStatus}.`,
+    })
+}
+
+const doctorsStatusOverrides = ref<Record<string, string>>({})
 
 function sendReminder(invoice: any) {
   toast({
@@ -126,6 +278,10 @@ function sendReminder(invoice: any) {
     duration: 3000,
   })
 }
+
+const totalFilteredAmount = computed(() => {
+  return filteredInvoices.value.reduce((sum, inv) => sum + inv.amount, 0)
+})
 
 // Summary computed from ALL invoices, not filtered ones, to align with static top-level cards
 const summary = computed(() => {
@@ -362,6 +518,189 @@ function handleSaveEvent() {
         </DropdownMenu>
       </div>
     </div>
+    <!-- Tabs Control -->
+    <Tabs default-value="doctors" class="space-y-4">
+      <TabsList>
+        <TabsTrigger value="doctors">
+          Doctors
+        </TabsTrigger>
+        <TabsTrigger value="patients">
+          Patients
+        </TabsTrigger>
+      </TabsList>
+
+      <!-- DOCTORS VIEW -->
+      <TabsContent value="doctors" class="space-y-4">
+        <!-- Doctors Summary Cards -->
+         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+               <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle class="text-sm font-medium">Total Commission (YTD)</CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <div class="text-2xl font-bold">€{{ totalCommission.toLocaleString(undefined, {maximumFractionDigits: 0}) }}</div>
+                 <p class="text-xs text-muted-foreground">+5.4% from last month</p>
+               </CardContent>
+            </Card>
+            <Card>
+               <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle class="text-sm font-medium">Pending Bills</CardTitle>
+                 <Clock class="h-4 w-4 text-orange-500" />
+               </CardHeader>
+               <CardContent>
+                 <div class="text-2xl font-bold text-orange-600">€{{ pendingCommission.toLocaleString() }}</div>
+                 <p class="text-xs text-muted-foreground">Owed by 1 doctor</p>
+               </CardContent>
+            </Card>
+             <Card>
+               <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle class="text-sm font-medium">Session Volume</CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <div class="text-2xl font-bold text-blue-600">€{{ (totalCommission / 0.3).toLocaleString(undefined, {maximumFractionDigits: 0}) }}</div>
+                 <p class="text-xs text-muted-foreground">Total value of services</p>
+               </CardContent>
+            </Card>
+         </div>
+
+         <!-- Doctors Table -->
+         <div class="rounded-md border bg-card shadow-sm overflow-hidden">
+            <Table>
+               <TableHeader>
+                  <TableRow>
+                     <TableHead class="w-[50px]"></TableHead>
+                     <TableHead>Doctor</TableHead>
+                     <TableHead class="text-right">Total Volume</TableHead>
+                     <TableHead class="text-right font-bold text-primary">Commission (30%)</TableHead>
+                     <TableHead>Bill Status</TableHead>
+                     <TableHead class="text-right">Actions</TableHead>
+                  </TableRow>
+               </TableHeader>
+               <TableBody>
+                  <template v-for="doc in doctorsData" :key="doc.id">
+                      <!-- Main Doctor Row -->
+                      <TableRow 
+                        class="cursor-pointer hover:bg-muted/50 transition-colors"
+                        @click="toggleDoctorExpansion(doc.id)"
+                        :class="expandedDoctorIds.has(doc.id) ? 'bg-muted/30' : ''"
+                      >
+                         <TableCell>
+                             <Button variant="ghost" size="icon" class="h-6 w-6 p-0 text-muted-foreground">
+                                 <ChevronDown v-if="expandedDoctorIds.has(doc.id)" class="h-4 w-4" />
+                                 <ChevronRight v-else class="h-4 w-4" />
+                             </Button>
+                         </TableCell>
+                         <TableCell>
+                            <div class="flex items-center gap-3">
+                               <Avatar class="h-8 w-8">
+                                  <AvatarFallback class="bg-blue-100 text-blue-700 font-medium text-xs">{{ doc.initials }}</AvatarFallback>
+                               </Avatar>
+                               <div>
+                                  <div class="font-medium text-sm">{{ doc.name }}</div>
+                                  <div class="text-xs text-muted-foreground">{{ doc.sessions.length }} sessions</div>
+                               </div>
+                            </div>
+                         </TableCell>
+                         <TableCell class="text-right text-muted-foreground">€{{ doc.totalVolume.toLocaleString() }}</TableCell>
+                         <TableCell class="text-right font-bold text-lg">€{{ doc.commissionDue.toFixed(2) }}</TableCell>
+                         <TableCell>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger as-child>
+                                     <Button variant="ghost" class="h-auto p-0 hover:bg-transparent">
+                                        <Badge :class="{
+                                            'bg-green-100 text-green-700 hover:bg-green-100': doc.status === 'Paid',
+                                            'bg-orange-100 text-orange-700 hover:bg-orange-100': doc.status === 'Billed',
+                                            'bg-slate-100 text-slate-700 hover:bg-slate-100': doc.status === 'Unbilled',
+                                        }" variant="outline" class="cursor-pointer gap-1">
+                                           {{ doc.status }}
+                                           <ChevronDown class="w-3 h-3 opacity-50" />
+                                        </Badge>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                    <DropdownMenuItem @click="updateDoctorStatus(doc, 'Unbilled')">
+                                        <div class="h-2 w-2 rounded-full bg-slate-400 mr-2"></div> Unbilled
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem @click="updateDoctorStatus(doc, 'Billed')">
+                                         <div class="h-2 w-2 rounded-full bg-orange-500 mr-2"></div> Billed
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem @click="updateDoctorStatus(doc, 'Paid')">
+                                         <div class="h-2 w-2 rounded-full bg-green-500 mr-2"></div> Paid
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                         </TableCell>
+                         <TableCell class="text-right">
+                             <div @click.stop>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="ghost" class="h-8 w-8 p-0">
+                                            <span class="sr-only">Open menu</span>
+                                            <MoreHorizontal class="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem @click="openDoctorInvoiceModal(doc)">
+                                            <Eye class="mr-2 h-4 w-4" /> View details
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem @click="handleDownload(doc)">
+                                            <Download class="mr-2 h-4 w-4" /> Download PDF
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem @click="handlePrint(doc)">
+                                            <Printer class="mr-2 h-4 w-4" /> Print
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem @click="handleShareDoctorBill(doc)">
+                                            <Share2 class="mr-2 h-4 w-4" /> Share
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                             </div>
+                         </TableCell>
+                      </TableRow>
+                      
+                      <!-- Expanded Detail Row -->
+                      <TableRow v-if="expandedDoctorIds.has(doc.id)">
+                          <TableCell :colspan="6" class="p-0 bg-muted/20 inset-shadow">
+                              <div class="p-4 pl-14">
+                                  <div class="rounded-md border bg-white overflow-hidden">
+                                      <Table>
+                                          <TableHeader class="bg-muted/50">
+                                              <TableRow>
+                                                  <TableHead class="h-8 text-xs">Date</TableHead>
+                                                  <TableHead class="h-8 text-xs">Patient</TableHead>
+                                                  <TableHead class="h-8 text-xs text-right">Session Fee</TableHead>
+                                                  <TableHead class="h-8 text-xs text-right">Commission (30%)</TableHead>
+                                                  <TableHead class="h-8 text-xs text-center">Invoice</TableHead>
+                                              </TableRow>
+                                          </TableHeader>
+                                          <TableBody>
+                                              <TableRow v-for="sess in doc.sessions" :key="sess.id" class="hover:bg-transparent">
+                                                  <TableCell class="py-2 text-xs text-muted-foreground">{{ formatDate(sess.date) }}</TableCell>
+                                                  <TableCell class="py-2 text-xs font-medium">{{ sess.patient }}</TableCell>
+                                                  <TableCell class="py-2 text-xs text-right text-muted-foreground">€{{ sess.amount }}</TableCell>
+                                                  <TableCell class="py-2 text-xs text-right font-medium">€{{ sess.commission.toFixed(2) }}</TableCell>
+                                                  <TableCell class="py-2 text-xs text-center">
+                                                      <a href="#" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline">
+                                                          Preview <ExternalLink class="ml-1 h-3 w-3" />
+                                                      </a>
+                                                  </TableCell>
+                                              </TableRow>
+                                          </TableBody>
+                                      </Table>
+                                  </div>
+                              </div>
+                          </TableCell>
+                      </TableRow>
+                  </template>
+               </TableBody>
+            </Table>
+         </div>
+      </TabsContent>
+
+      <!-- PATIENTS VIEW (Original Content) -->
+      <TabsContent value="patients" class="space-y-4">
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card v-for="card in summaryCards" :key="card.key">
@@ -528,6 +867,13 @@ function handleSaveEvent() {
           </SelectContent>
         </Select>
 
+        <!-- Date Filter -->
+        <div class="flex items-center gap-2">
+            <DatePicker v-model="startDate" placeholder="Start date" class="w-[140px]" />
+            <span class="text-muted-foreground">-</span>
+            <DatePicker v-model="endDate" placeholder="End date" class="w-[140px]" />
+        </div>
+
         <!-- Column Settings Popover -->
         <Popover>
           <PopoverTrigger as-child>
@@ -536,30 +882,41 @@ function handleSaveEvent() {
               Columns
             </Button>
           </PopoverTrigger>
-          <PopoverContent class="w-[200px]" align="end">
+          <PopoverContent class="w-[280px]" align="end">
              <div class="space-y-4">
-                <div class="text-sm font-medium leading-none mb-2">Toggle Columns</div>
-                <div v-for="(col, index) in columns" :key="col.id" class="flex items-center justify-between space-x-2">
-                   <div class="flex items-center gap-2">
-                      <Checkbox :id="`col-${col.id}`" :checked="col.visible" @update:checked="(v: boolean) => toggleColumn(col.id, v)" />
-                      <label :for="`col-${col.id}`" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none">
-                        {{ col.label }}
-                      </label>
-                   </div>
-                   <!-- Simple Reorder Buttons -->
-                   <div class="flex items-center gap-0.5" v-if="col.id !== 'actions'">
-                      <Button variant="ghost" size="icon" class="h-5 w-5 hover:bg-muted" :disabled="index === 0" @click="moveColumn(index, -1)">
-                         <ChevronUp class="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" class="h-5 w-5 hover:bg-muted" :disabled="index === columns.length - 2" @click="moveColumn(index, 1)">
-                         <ChevronDown class="w-3 h-3" />
-                      </Button>
-                   </div>
+                <div class="flex items-center justify-between mb-2">
+                   <div class="text-sm font-medium leading-none">Customize Columns</div>
+                   <Button variant="ghost" size="sm" class="h-6 w-auto text-xs text-muted-foreground hover:text-foreground p-0" @click="resetColumns">
+                      Reset
+                   </Button>
                 </div>
-                <!-- Reset Button -->
-                <Button variant="ghost" size="sm" class="w-full text-xs h-8 mt-2" @click="resetColumns">
-                  Reset Defaults
-                </Button>
+                
+                <draggable 
+                  v-model="columns" 
+                  item-key="id"
+                  handle=".handle"
+                  class="space-y-2"
+                  :animation="200"
+                >
+                  <template #item="{ element }">
+                    <div class="flex items-center justify-between p-2 bg-muted/40 rounded-md group hover:bg-muted/60 transition-colors">
+                       <div class="flex items-center gap-3">
+                          <GripVertical class="handle h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                          <span class="text-sm font-medium select-none">{{ element.label }}</span>
+                       </div>
+                       <Button 
+                         variant="ghost" 
+                         size="icon" 
+                         class="h-6 w-6" 
+                         :class="element.visible ? 'text-blue-600' : 'text-muted-foreground'"
+                         @click="toggleColumn(element.id)"
+                       >
+                          <Eye v-if="element.visible" class="h-4 w-4" />
+                          <EyeOff v-else class="h-4 w-4" />
+                       </Button>
+                    </div>
+                  </template>
+                </draggable>
              </div>
           </PopoverContent>
         </Popover>
@@ -677,16 +1034,42 @@ function handleSaveEvent() {
             </TableCell>
           </TableRow>
         </TableBody>
+        <TableFooter>
+          <TableRow class="bg-muted/50 font-bold hover:bg-muted/50">
+             <TableCell 
+               v-for="(col, index) in visibleColumns" 
+               :key="col.id"
+               :class="col.id === 'amount' || col.id === 'actions' ? 'text-right' : ''"
+             >
+                <span v-if="index === 0">Total</span>
+                <span v-else-if="col.id === 'amount'">€{{ totalFilteredAmount.toLocaleString() }}</span>
+             </TableCell>
+          </TableRow>
+        </TableFooter>
       </Table>
     </div>
+    </TabsContent>
+    </Tabs>
 
-    <!-- Invoice Modal (Edit Mode) -->
+    <!-- Invoice Modal (Edit Mode - Patients) -->
     <InvoiceModal 
       :is-open="isInvoiceModalOpen" 
       :invoice="selectedInvoice" 
       :doctors="doctors"
       @close="isInvoiceModalOpen = false"
       @save="handleSaveInvoice"
+      @print="handlePrint"
+      @download="handleDownload"
+      @share="handleShare"
+    />
+
+    <!-- Invoice Modal (Edit Mode - Doctors) -->
+    <InvoiceModal 
+      :is-open="isDoctorInvoiceModalOpen" 
+      :invoice="selectedDoctorInvoice" 
+      :doctors="doctors"
+      @close="isDoctorInvoiceModalOpen = false"
+      @save="handleSaveDoctorInvoice"
       @print="handlePrint"
       @download="handleDownload"
       @share="handleShare"
