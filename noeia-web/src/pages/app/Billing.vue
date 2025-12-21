@@ -30,18 +30,48 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Settings2, GripVertical } from 'lucide-vue-next'
 import { useToast } from '@/components/ui/toast/use-toast'
 import InvoiceModal from '@/components/org/InvoiceModal.vue'
 import BillingTrendChart from '@/components/org/BillingTrendChart.vue'
+import draggable from 'vuedraggable'
 
 const { toast } = useToast()
 
-// ... (Mock Data & Filters - unchanged) ...
-// NOTE: I am not replacing the whole file, just the top imports and then appending helper.
-// But since this tool is replace_file_content, I must match existing content.
-// I will target the imports block specifically.
+// Table Columns Customization
+const defaultColumns = [
+  { id: 'select', label: 'Select', visible: true, order: 0 },
+  { id: 'id', label: 'ID', visible: true, order: 1 },
+  { id: 'date', label: 'Date', visible: true, order: 2 },
+  { id: 'patient', label: 'Patient', visible: true, order: 3 },
+  { id: 'type', label: 'Type', visible: true, order: 4 },
+  { id: 'paymentMode', label: 'Payment Mode', visible: true, order: 5 },
+  { id: 'amount', label: 'Amount', visible: true, order: 6 },
+  { id: 'clinic', label: 'Clinic %', visible: true, order: 7 },
+  { id: 'billable', label: 'Billable', visible: true, order: 8 },
+  { id: 'status', label: 'Status', visible: true, order: 9 },
+  { id: 'actions', label: 'Actions', visible: true, order: 10 }
+]
 
-// ... (skipping to helpers addition at the bottom) ...
+const columns = ref([...defaultColumns.map(c => ({...c}))])
+
+// Watch columns to update order
+const visibleColumns = computed(() => {
+  // Since we reorder the main array directly with draggable, we just filter by visible
+  // We don't need to sort by 'order' property anymore if the array order IS the order.
+  // But let's keep 'order' property sync just in case.
+  return columns.value.filter(c => c.visible)
+})
+
+function toggleColumn(id: string) {
+  const col = columns.value.find(c => c.id === id)
+  if (col) col.visible = !col.visible
+}
+
+function resetColumns() {
+  columns.value = defaultColumns.map(c => ({...c}))
+}
 
 
 // --- Mock Data: Sessions ---
@@ -450,10 +480,10 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
       </Card>
     </div>
 
-    <!-- Filters -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+     <!-- Filters -->
+    <div class="flex flex-col md:flex-row gap-4">
       <!-- Search -->
-      <div class="relative">
+      <div class="relative flex-1">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input 
           v-model="searchQuery"
@@ -464,8 +494,9 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
       </div>
 
       <!-- Filters Row -->
-       <Select v-model="selectedPatient">
-          <SelectTrigger class="bg-white">
+      <div class="flex flex-wrap gap-2 md:gap-4 items-center">
+        <Select v-model="selectedPatient">
+          <SelectTrigger class="bg-white w-[160px]">
             <SelectValue placeholder="All Patients" />
           </SelectTrigger>
           <SelectContent>
@@ -475,8 +506,8 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
         </Select>
 
         <Select v-model="selectedType">
-          <SelectTrigger class="bg-white">
-            <SelectValue placeholder="All Session Types" />
+          <SelectTrigger class="bg-white w-[160px]">
+            <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
@@ -485,7 +516,7 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
         </Select>
         
          <Select v-model="selectedStatus">
-          <SelectTrigger class="bg-white">
+          <SelectTrigger class="bg-white w-[140px]">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
@@ -493,10 +524,58 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
             <SelectItem v-for="s in statuses" :key="s" :value="s">{{ s }}</SelectItem>
           </SelectContent>
         </Select>
+
+        <!-- Column Settings Popover -->
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button variant="outline" class="ml-auto">
+              <Settings2 class="mr-2 h-4 w-4" />
+              Columns
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[280px]" align="end">
+             <div class="space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                   <div class="text-sm font-medium leading-none">Customize Columns</div>
+                   <Button variant="ghost" size="sm" class="h-6 w-auto text-xs text-muted-foreground hover:text-foreground p-0" @click="resetColumns">
+                      Reset
+                   </Button>
+                </div>
+                
+                <draggable 
+                  v-model="columns" 
+                  item-key="id"
+                  handle=".handle"
+                  class="space-y-2"
+                  :animation="200"
+                >
+                  <template #item="{ element }">
+                    <div class="flex items-center justify-between p-2 bg-muted/40 rounded-md group hover:bg-muted/60 transition-colors">
+                       <div class="flex items-center gap-3">
+                          <GripVertical class="handle h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
+                          <span class="text-sm font-medium select-none">{{ element.label }}</span>
+                       </div>
+                       <Button 
+                         variant="ghost" 
+                         size="icon" 
+                         class="h-6 w-6" 
+                         :class="element.visible ? 'text-blue-600' : 'text-muted-foreground'"
+                         @click="toggleColumn(element.id)"
+                       >
+                          <Eye v-if="element.visible" class="h-4 w-4" />
+                          <EyeOff v-else class="h-4 w-4" />
+                       </Button>
+                    </div>
+                  </template>
+                </draggable>
+             </div>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
     
     <!-- Date Filter -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 mt-2">
         <div class="flex items-center gap-2">
           <DatePicker v-model="startDate" placeholder="Start date" class="w-[180px]" />
           <span class="text-muted-foreground">-</span>
@@ -510,179 +589,236 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
         <Table class="min-w-[1200px]">
           <TableHeader>
             <TableRow class="bg-muted/50 hover:bg-muted/50">
-              <TableHead class="w-[40px]">
-                <div 
-                  @click="handleSelectAll(!allFilteredSelected)" 
-                  class="cursor-pointer h-4 w-4 shrink-0 rounded-sm border border-primary shadow flex items-center justify-center transition-colors"
-                  :class="{
-                    'bg-primary text-primary-foreground': allFilteredSelected || someFilteredSelected,
-                    'opacity-50 cursor-not-allowed': false
-                  }"
-                >
-                  <Check v-if="allFilteredSelected && !someFilteredSelected" class="h-3 w-3 text-white" />
-                  <Minus v-if="someFilteredSelected" class="h-3 w-3 text-white" />
-                </div>
-              </TableHead>
-              <TableHead class="w-[100px]">ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Patient</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Payment Mode</TableHead>
-              <TableHead class="text-right">Amount</TableHead>
-              <TableHead class="text-right flex items-center justify-end gap-1">
-                 Clinic %
-                 <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info class="h-3 w-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Clinic Commission: {{ (commissionRate * 100).toFixed(0) }}%</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </TableHead>
-              <TableHead class="text-right">Billable</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead class="text-right sticky right-0 bg-muted/50 z-20 shadow-[-5px_0px_10px_-5px_rgba(0,0,0,0.1)]">
-                <div class="flex items-center justify-end gap-2 px-2">
-                  <!-- Selection Menu (Visible when items selected) -->
-                   <DropdownMenu v-if="selectedSessionIds.length > 0">
-                    <DropdownMenuTrigger as-child>
-                      <Button variant="ghost" class="h-8 px-2 hover:bg-transparent text-xs font-medium text-orange-600">
-                         {{ selectedSessionIds.length }} selected
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem @click="handleDownloadAll()">
-                        <Download class="mr-2 h-4 w-4" />
-                        <span>Download {{ selectedSessionIds.length }} Bills</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Share2 class="mr-2 h-4 w-4" />
-                        <span>Share {{ selectedSessionIds.length }} Bills</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem class="text-red-600 focus:text-red-600 focus:bg-red-50">
-                        <Trash2 class="mr-2 h-4 w-4" />
-                        <span>Delete {{ selectedSessionIds.length }} Bills</span>
-                      </DropdownMenuItem>
-                       <DropdownMenuItem @click="selectedSessionIds = []">
-                        <X class="mr-2 h-4 w-4" />
-                        <span>Clear Selection</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+              <TableHead 
+                 v-for="col in visibleColumns" 
+                 :key="col.id"
+                 :class="[
+                   col.id === 'amount' || col.id === 'billable' || col.id === 'clinic' ? 'text-right' : '',
+                   col.id === 'select' ? 'w-[40px]' : '',
+                   col.id === 'id' ? 'w-[100px]' : '',
+                   col.id === 'actions' ? 'w-[100px] text-right sticky right-0 bg-muted/50 z-20 shadow-[-5px_0px_10px_-5px_rgba(0,0,0,0.1)]' : ''
+                 ]"
+              >
+                 <!-- Specific Header Content based on ID -->
+                 <template v-if="col.id === 'select'">
+                    <div 
+                      @click="handleSelectAll(!allFilteredSelected)" 
+                      class="cursor-pointer h-4 w-4 shrink-0 rounded-sm border border-primary shadow flex items-center justify-center transition-colors"
+                      :class="{
+                        'bg-primary text-primary-foreground': allFilteredSelected || someFilteredSelected,
+                        'opacity-50 cursor-not-allowed': false
+                      }"
+                    >
+                      <Check v-if="allFilteredSelected && !someFilteredSelected" class="h-3 w-3 text-white" />
+                      <Minus v-if="someFilteredSelected" class="h-3 w-3 text-white" />
+                    </div>
+                 </template>
 
-                  <!-- Global Actions Menu -->
-                  <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                      <Button variant="ghost" class="h-8 w-8 p-0">
-                        <span class="sr-only">Open menu</span>
-                        <MoreHorizontal class="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem @click="() => handleDownloadAll(true)">
-                        <Download class="mr-2 h-4 w-4" />
-                        <span>Download All Bills</span>
-                      </DropdownMenuItem>
-                      <!-- Add more global actions here in the future -->
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                 <template v-else-if="col.id === 'clinic'">
+                     <div class="flex items-center justify-end gap-1">
+                       Clinic %
+                       <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info class="h-3 w-3 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Clinic Commission: {{ (commissionRate * 100).toFixed(0) }}%</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                     </div>
+                 </template>
+
+                 <template v-else-if="col.id === 'actions'">
+                    <div class="flex items-center justify-end gap-2 px-2">
+                      <!-- Selection Menu (Visible when items selected) -->
+                       <DropdownMenu v-if="selectedSessionIds.length > 0">
+                        <DropdownMenuTrigger as-child>
+                          <Button variant="ghost" class="h-8 px-2 hover:bg-transparent text-xs font-medium text-orange-600">
+                             {{ selectedSessionIds.length }} selected
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem @click="handleDownloadAll()">
+                            <Download class="mr-2 h-4 w-4" />
+                            <span>Download {{ selectedSessionIds.length }} Bills</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Share2 class="mr-2 h-4 w-4" />
+                            <span>Share {{ selectedSessionIds.length }} Bills</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem class="text-red-600 focus:text-red-600 focus:bg-red-50">
+                            <Trash2 class="mr-2 h-4 w-4" />
+                            <span>Delete {{ selectedSessionIds.length }} Bills</span>
+                          </DropdownMenuItem>
+                           <DropdownMenuItem @click="selectedSessionIds = []">
+                            <X class="mr-2 h-4 w-4" />
+                            <span>Clear Selection</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <!-- Global Actions Menu -->
+                      <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                          <Button variant="ghost" class="h-8 w-8 p-0">
+                            <span class="sr-only">Open menu</span>
+                            <MoreHorizontal class="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem @click="() => handleDownloadAll(true)">
+                            <Download class="mr-2 h-4 w-4" />
+                            <span>Download All Bills</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                 </template>
+
+                 <!-- Default Label -->
+                 <template v-else>
+                    {{ col.label }}
+                 </template>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="session in filteredSessions" :key="session.id" class="group">
-              <TableCell>
-                <div 
-                  @click.stop="() => handleRowSelect(session.id)" 
-                  class="cursor-pointer h-4 w-4 shrink-0 rounded-sm border border-primary shadow flex items-center justify-center transition-colors"
-                  :class="{
-                    'bg-primary text-primary-foreground': selectedSessionIds.includes(session.id),
-                    'opacity-50 cursor-not-allowed': false
-                  }"
-                >
-                  <Check v-if="selectedSessionIds.includes(session.id)" class="h-3 w-3 text-white" />
-                </div>
-              </TableCell>
-              <TableCell class="font-medium font-mono text-xs">{{ session.id }}</TableCell>
-              <TableCell class="text-muted-foreground text-sm">{{ formatDate(session.date) }}</TableCell>
-              
-              <TableCell>
-                <div class="flex items-center gap-2">
-                   <Avatar class="h-6 w-6">
-                    <AvatarFallback class="bg-primary-50 text-primary-700 text-[10px]">{{ session.patientInitials }}</AvatarFallback>
-                  </Avatar>
-                  <span class="font-medium text-sm">{{ session.patient }}</span>
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <Badge variant="outline" class="font-normal text-xs">{{ session.type }}</Badge>
-              </TableCell>
+              <TableCell 
+                 v-for="col in visibleColumns" 
+                 :key="col.id"
+                 :class="[
+                    col.id === 'amount' || col.id === 'billable' || col.id === 'clinic' ? 'text-right' : '',
+                    col.id === 'actions' ? 'text-right sticky right-0 bg-background group-hover:bg-muted/50 z-10 shadow-[-5px_0px_10px_-5px_rgba(0,0,0,0.1)]' : ''
+                 ]"
+              >
+                  <!-- Select -->
+                  <template v-if="col.id === 'select'">
+                    <div 
+                      @click.stop="() => handleRowSelect(session.id)" 
+                      class="cursor-pointer h-4 w-4 shrink-0 rounded-sm border border-primary shadow flex items-center justify-center transition-colors"
+                      :class="{
+                        'bg-primary text-primary-foreground': selectedSessionIds.includes(session.id),
+                        'opacity-50 cursor-not-allowed': false
+                      }"
+                    >
+                      <Check v-if="selectedSessionIds.includes(session.id)" class="h-3 w-3 text-white" />
+                    </div>
+                  </template>
 
-               <TableCell class="text-sm">
-                 <span v-if="session.paymentMode" class="text-slate-700">{{ session.paymentMode }}</span>
-                 <span v-else class="text-muted-foreground italic">-</span>
-              </TableCell>
-              
-              <TableCell class="font-medium text-right">€{{ session.amount }}</TableCell>
-              <TableCell class="text-right text-muted-foreground">€{{ (session.amount * commissionRate).toFixed(2) }}</TableCell>
-              <TableCell class="font-bold text-right">€{{ (session.amount * (1 - commissionRate)).toFixed(2) }}</TableCell>
-              
-              <TableCell>
-                 <Badge 
-                  variant="outline"
-                  class="gap-1 font-normal"
-                  :class="getStatusColor(session.status)"
-                >
-                  <CheckCircle v-if="session.status === 'Paid'" class="w-3 h-3" />
-                  <Clock v-if="session.status === 'Pending'" class="w-3 h-3" />
-                  {{ session.status }}
-                </Badge>
-              </TableCell>
-              
-              <TableCell class="text-right sticky right-0 bg-background group-hover:bg-muted/50 z-10 shadow-[-5px_0px_10px_-5px_rgba(0,0,0,0.1)]">
-                <div class="px-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                      <Button variant="ghost" class="h-8 w-8 p-0">
-                        <span class="sr-only">Open menu</span>
-                        <MoreHorizontal class="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem @click="handleDownload(session)">
-                        <Download class="mr-2 h-4 w-4" />
-                        <span>Download Bill</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit class="mr-2 h-4 w-4" />
-                        <span>Edit Session</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Share2 class="mr-2 h-4 w-4" />
-                        <span>Share</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                  <!-- ID -->
+                  <template v-else-if="col.id === 'id'">
+                     <span class="font-medium font-mono text-xs">{{ session.id }}</span>
+                  </template>
+
+                  <!-- Date -->
+                  <template v-else-if="col.id === 'date'">
+                     <span class="text-muted-foreground text-sm">{{ formatDate(session.date) }}</span>
+                  </template>
+
+                  <!-- Patient -->
+                  <template v-else-if="col.id === 'patient'">
+                     <div class="flex items-center gap-2">
+                       <Avatar class="h-6 w-6">
+                        <AvatarFallback class="bg-primary-50 text-primary-700 text-[10px]">{{ session.patientInitials }}</AvatarFallback>
+                      </Avatar>
+                      <span class="font-medium text-sm">{{ session.patient }}</span>
+                    </div>
+                  </template>
+
+                  <!-- Type -->
+                  <template v-else-if="col.id === 'type'">
+                     <Badge variant="outline" class="font-normal text-xs">{{ session.type }}</Badge>
+                  </template>
+
+                  <!-- Payment Mode -->
+                  <template v-else-if="col.id === 'paymentMode'">
+                     <span v-if="session.paymentMode" class="text-slate-700">{{ session.paymentMode }}</span>
+                     <span v-else class="text-muted-foreground italic">-</span>
+                  </template>
+
+                  <!-- Amount -->
+                  <template v-else-if="col.id === 'amount'">
+                     <span class="font-medium">€{{ session.amount }}</span>
+                  </template>
+
+                  <!-- Clinic -->
+                  <template v-else-if="col.id === 'clinic'">
+                     <span class="text-muted-foreground">€{{ (session.amount * commissionRate).toFixed(2) }}</span>
+                  </template>
+
+                  <!-- Billable -->
+                  <template v-else-if="col.id === 'billable'">
+                     <span class="font-bold">€{{ (session.amount * (1 - commissionRate)).toFixed(2) }}</span>
+                  </template>
+
+                  <!-- Status -->
+                  <template v-else-if="col.id === 'status'">
+                     <Badge 
+                      variant="outline"
+                      class="gap-1 font-normal"
+                      :class="getStatusColor(session.status)"
+                    >
+                      <CheckCircle v-if="session.status === 'Paid'" class="w-3 h-3" />
+                      <Clock v-if="session.status === 'Pending'" class="w-3 h-3" />
+                      {{ session.status }}
+                    </Badge>
+                  </template>
+
+                  <!-- Actions -->
+                  <template v-else-if="col.id === 'actions'">
+                     <div class="px-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                          <Button variant="ghost" class="h-8 w-8 p-0">
+                            <span class="sr-only">Open menu</span>
+                            <MoreHorizontal class="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem @click="handleDownload(session)">
+                            <Download class="mr-2 h-4 w-4" />
+                            <span>Download Bill</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit class="mr-2 h-4 w-4" />
+                            <span>Edit Session</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Share2 class="mr-2 h-4 w-4" />
+                            <span>Share</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </template>
               </TableCell>
             </TableRow>
             
             <TableRow v-if="filteredSessions.length === 0">
-              <TableCell colspan="10" class="h-24 text-center text-muted-foreground">
+              <TableCell :colspan="visibleColumns.length" class="h-24 text-center text-muted-foreground">
                 No sessions found matching your filters.
               </TableCell>
             </TableRow>
             <TableRow v-else class="bg-muted/50 font-bold hover:bg-muted/50">
-              <TableCell colspan="6" class="text-right py-4">Totals:</TableCell>
-              <TableCell class="text-right py-4">€{{ totalFilteredAmount.toLocaleString() }}</TableCell>
-              <TableCell class="text-right py-4 text-muted-foreground">€{{ totalCommission.toLocaleString() }}</TableCell>
-              <TableCell class="text-right py-4">€{{ totalBillable.toLocaleString() }}</TableCell>
-              <TableCell colspan="2"></TableCell>
+               <!-- Footer Totals needs to align with dynamic columns too, but for simplicity let's assume standard layout or use simpler colspan -->
+               <!-- The current dynamic nature makes precise footer alignment hard without tracking column indices.
+                    For now, let's just make it spans safely or hide it if it breaks layout.
+                    Actually, let's try to infer if 'amount', 'clinic', 'billable' are visible. -->
+              <TableCell :colspan="visibleColumns.filter(c => c.order < 6).length" class="text-right py-4">Totals:</TableCell>
+              
+              <!-- Amount -->
+              <TableCell v-if="columns.find(c => c.id === 'amount')?.visible" class="text-right py-4">€{{ totalFilteredAmount.toLocaleString() }}</TableCell>
+              
+              <!-- Clinic -->
+              <TableCell v-if="columns.find(c => c.id === 'clinic')?.visible" class="text-right py-4 text-muted-foreground">€{{ totalCommission.toLocaleString() }}</TableCell>
+              
+              <!-- Billable -->
+              <TableCell v-if="columns.find(c => c.id === 'billable')?.visible" class="text-right py-4">€{{ totalBillable.toLocaleString() }}</TableCell>
+              
+              <TableCell :colspan="Math.max(0, visibleColumns.length - visibleColumns.filter(c => c.order <= 8).length)"></TableCell>
             </TableRow>
           </TableBody>
         </Table>

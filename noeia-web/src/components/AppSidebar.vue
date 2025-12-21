@@ -67,6 +67,14 @@ const organizationNavigation = [
 ]
 
 const navigation = computed(() => {
+  const path = route.path
+  
+  // 1. Context-based Navigation (URL Priority)
+  if (path.startsWith('/app/doctor')) return defaultNavigation
+  if (path.startsWith('/app/organization')) return organizationNavigation
+  if (path.startsWith('/app/client')) return clientNavigation
+
+  // 2. Role-based Fallback
   const role = user.value?.app_metadata?.role
   if (role === 'client') {
     return clientNavigation

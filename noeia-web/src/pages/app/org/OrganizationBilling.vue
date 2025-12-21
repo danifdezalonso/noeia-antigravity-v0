@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
-import { Search, Download, CheckCircle, AlertCircle, Clock, MoreHorizontal, FileText, Share2, Printer, Eye, EyeOff, Maximize2, Plus } from 'lucide-vue-next'
+import { 
+  Search, Download, CheckCircle, AlertCircle, Clock, MoreHorizontal, 
+  FileText, Share2, Printer, Eye, EyeOff, Maximize2, Plus, 
+  Settings2, ChevronUp, ChevronDown, User, Bell 
+} from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -24,17 +28,63 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/components/ui/toast/use-toast'
 import InvoiceModal from '@/components/org/InvoiceModal.vue'
 import BillingTrendChart from '@/components/org/BillingTrendChart.vue'
 import BillingDetailChart from '@/components/org/BillingDetailChart.vue'
 import CalendarEventModal from '@/components/org/CalendarEventModal.vue'
-import { User, Bell } from 'lucide-vue-next'
 
 const { toast } = useToast()
-
 const isCreateInvoiceModalOpen = ref(false)
 const isEventModalOpen = ref(false)
+
+// Table Columns Customization
+const defaultColumns = [
+  { id: 'id', label: 'Invoice ID', visible: true, order: 0 },
+  { id: 'patient', label: 'Patient', visible: true, order: 1 },
+  { id: 'doctor', label: 'Doctor', visible: true, order: 2 },
+  { id: 'date', label: 'Date', visible: true, order: 3 },
+  { id: 'amount', label: 'Amount', visible: true, order: 4 },
+  { id: 'status', label: 'Status', visible: true, order: 5 },
+  { id: 'actions', label: 'Actions', visible: true, order: 6 }
+]
+
+const columns = ref([...defaultColumns.map(c => ({...c}))])
+
+const visibleColumns = computed(() => {
+  return columns.value
+    .filter(c => c.visible)
+    .sort((a, b) => a.order - b.order)
+})
+
+function toggleColumn(id: string, checked: boolean) {
+  const col = columns.value.find(c => c.id === id)
+  if (col) col.visible = checked
+}
+
+
+function moveColumn(index: number, direction: -1 | 1) {
+  const newIndex = index + direction
+  if (newIndex >= 0 && newIndex < columns.value.length) {
+    const colA = columns.value[index]
+    const colB = columns.value[newIndex]
+    
+    // Safety check to satisfy TS
+    if (colA && colB) {
+      columns.value[index] = colB
+      columns.value[newIndex] = colA
+      
+      // Update order
+      columns.value.forEach((col, idx) => col.order = idx)
+    }
+  }
+}
+
+function resetColumns() {
+  columns.value = defaultColumns.map(c => ({...c}))
+}
 
 // Mock Data
 const invoices = ref([
@@ -447,7 +497,7 @@ function handleSaveEvent() {
       </DialogContent>
     </Dialog>
 
-    <!-- Filters -->
+    <!-- Filters & Table Settings -->
     <div class="flex flex-col sm:flex-row gap-4">
       <div class="relative flex-1">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -458,7 +508,7 @@ function handleSaveEvent() {
           class="pl-9 bg-white"
         />
       </div>
-      <div class="flex gap-4">
+      <div class="flex gap-4 items-center">
         <Select v-model="selectedDoctor">
           <SelectTrigger class="w-[180px] bg-white">
             <SelectValue placeholder="All Doctors" />
@@ -477,91 +527,152 @@ function handleSaveEvent() {
             <SelectItem v-for="status in statuses" :key="status" :value="status">{{ status }}</SelectItem>
           </SelectContent>
         </Select>
+
+        <!-- Column Settings Popover -->
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button variant="outline" class="ml-auto">
+              <Settings2 class="mr-2 h-4 w-4" />
+              Columns
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-[200px]" align="end">
+             <div class="space-y-4">
+                <div class="text-sm font-medium leading-none mb-2">Toggle Columns</div>
+                <div v-for="(col, index) in columns" :key="col.id" class="flex items-center justify-between space-x-2">
+                   <div class="flex items-center gap-2">
+                      <Checkbox :id="`col-${col.id}`" :checked="col.visible" @update:checked="(v: boolean) => toggleColumn(col.id, v)" />
+                      <label :for="`col-${col.id}`" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer select-none">
+                        {{ col.label }}
+                      </label>
+                   </div>
+                   <!-- Simple Reorder Buttons -->
+                   <div class="flex items-center gap-0.5" v-if="col.id !== 'actions'">
+                      <Button variant="ghost" size="icon" class="h-5 w-5 hover:bg-muted" :disabled="index === 0" @click="moveColumn(index, -1)">
+                         <ChevronUp class="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" class="h-5 w-5 hover:bg-muted" :disabled="index === columns.length - 2" @click="moveColumn(index, 1)">
+                         <ChevronDown class="w-3 h-3" />
+                      </Button>
+                   </div>
+                </div>
+                <!-- Reset Button -->
+                <Button variant="ghost" size="sm" class="w-full text-xs h-8 mt-2" @click="resetColumns">
+                  Reset Defaults
+                </Button>
+             </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
 
     <!-- List -->
-    <div class="rounded-md border bg-card shadow-sm">
+    <div class="rounded-md border bg-card shadow-sm overflow-hidden">
+      <!-- Fixed: Added overflow-x-auto to container inside component in previous task, but table itself handles it. -->
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead class="w-[100px]">Invoice ID</TableHead>
-            <TableHead>Patient</TableHead>
-            <TableHead>Doctor</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead class="text-right">Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead class="text-right">Actions</TableHead>
+            <TableHead 
+               v-for="col in visibleColumns" 
+               :key="col.id" 
+               :class="[
+                  col.id === 'amount' || col.id === 'actions' ? 'text-right' : '',
+                  col.id === 'id' ? 'w-[100px]' : ''
+               ]"
+            >
+               {{ col.label }}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow v-for="invoice in filteredInvoices" :key="invoice.id">
-            <TableCell class="font-medium font-mono text-xs">{{ invoice.id }}</TableCell>
-            
-            <TableCell>
-              <div class="flex items-center gap-3">
-                <Avatar class="h-8 w-8">
-                  <AvatarFallback class="bg-primary-50 text-primary-700 text-xs">{{ invoice.patientInitials }}</AvatarFallback>
-                </Avatar>
-                <div class="font-medium text-sm">{{ invoice.patient }}</div>
-              </div>
-            </TableCell>
-            
-            <TableCell>
-              <div class="flex items-center gap-2">
-                <Avatar class="h-6 w-6">
-                  <AvatarFallback class="bg-slate-100 text-slate-600 text-[10px]">{{ invoice.doctorInitials }}</AvatarFallback>
-                </Avatar>
-                <span class="text-sm text-muted-foreground">{{ invoice.doctor }}</span>
-              </div>
-            </TableCell>
-            
-            <TableCell class="text-muted-foreground text-sm">{{ formatDate(invoice.date) }}</TableCell>
-            <TableCell class="font-medium text-right">€{{ invoice.amount }}</TableCell>
-            
-            <TableCell>
-              <Badge 
-                variant="outline"
-                class="gap-1 font-normal"
-                :class="getStatusColor(invoice.status)"
-              >
-                <CheckCircle v-if="invoice.status === 'Paid'" class="w-3 h-3" />
-                <Clock v-if="invoice.status === 'Pending'" class="w-3 h-3" />
-                <AlertCircle v-if="invoice.status === 'Overdue'" class="w-3 h-3" />
-                {{ invoice.status }}
-              </Badge>
-            </TableCell>
-            
-            <TableCell class="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                  <Button variant="ghost" class="h-8 w-8 p-0">
-                    <span class="sr-only">Open menu</span>
-                    <MoreHorizontal class="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem @click="openInvoiceModal(invoice)">
-                    <FileText class="mr-2 h-4 w-4" /> View details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem @click="handleDownload(invoice)">
-                    <Download class="mr-2 h-4 w-4" /> Download PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem @click="handlePrint(invoice)">
-                    <Printer class="mr-2 h-4 w-4" /> Print
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem @click="handleShare(invoice)">
-                    <Share2 class="mr-2 h-4 w-4" /> Share invoice
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
+             <!-- Dynamic Cells -->
+             <TableCell 
+               v-for="col in visibleColumns" 
+               :key="col.id"
+               :class="col.id === 'amount' || col.id === 'actions' ? 'text-right' : ''"
+             >
+                <!-- ID -->
+                <template v-if="col.id === 'id'">
+                   <span class="font-medium font-mono text-xs">{{ invoice.id }}</span>
+                </template>
+
+                <!-- Patient -->
+                <template v-else-if="col.id === 'patient'">
+                   <div class="flex items-center gap-3">
+                      <Avatar class="h-8 w-8">
+                         <AvatarFallback class="bg-primary-50 text-primary-700 text-xs">{{ invoice.patientInitials }}</AvatarFallback>
+                      </Avatar>
+                      <div class="font-medium text-sm">{{ invoice.patient }}</div>
+                   </div>
+                </template>
+
+                <!-- Doctor -->
+                <template v-else-if="col.id === 'doctor'">
+                   <div class="flex items-center gap-2">
+                      <Avatar class="h-6 w-6">
+                         <AvatarFallback class="bg-slate-100 text-slate-600 text-[10px]">{{ invoice.doctorInitials }}</AvatarFallback>
+                      </Avatar>
+                      <span class="text-sm text-muted-foreground">{{ invoice.doctor }}</span>
+                   </div>
+                </template>
+
+                <!-- Date -->
+                <template v-else-if="col.id === 'date'">
+                   <span class="text-muted-foreground text-sm">{{ formatDate(invoice.date) }}</span>
+                </template>
+
+                <!-- Amount -->
+                <template v-else-if="col.id === 'amount'">
+                   <span class="font-medium text-right">€{{ invoice.amount }}</span>
+                </template>
+
+                <!-- Status -->
+                <template v-else-if="col.id === 'status'">
+                   <Badge 
+                      variant="outline"
+                      class="gap-1 font-normal"
+                      :class="getStatusColor(invoice.status)"
+                   >
+                      <CheckCircle v-if="invoice.status === 'Paid'" class="w-3 h-3" />
+                      <Clock v-if="invoice.status === 'Pending'" class="w-3 h-3" />
+                      <AlertCircle v-if="invoice.status === 'Overdue'" class="w-3 h-3" />
+                      {{ invoice.status }}
+                   </Badge>
+                </template>
+
+                <!-- Actions -->
+                <template v-else-if="col.id === 'actions'">
+                   <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                         <Button variant="ghost" class="h-8 w-8 p-0">
+                            <span class="sr-only">Open menu</span>
+                            <MoreHorizontal class="h-4 w-4" />
+                         </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                         <DropdownMenuItem @click="openInvoiceModal(invoice)">
+                            <FileText class="mr-2 h-4 w-4" /> View details
+                         </DropdownMenuItem>
+                         <DropdownMenuItem @click="handleDownload(invoice)">
+                            <Download class="mr-2 h-4 w-4" /> Download PDF
+                         </DropdownMenuItem>
+                         <DropdownMenuItem @click="handlePrint(invoice)">
+                            <Printer class="mr-2 h-4 w-4" /> Print
+                         </DropdownMenuItem>
+                         <DropdownMenuSeparator />
+                         <DropdownMenuItem @click="handleShare(invoice)">
+                            <Share2 class="mr-2 h-4 w-4" /> Share invoice
+                         </DropdownMenuItem>
+                      </DropdownMenuContent>
+                   </DropdownMenu>
+                </template>
+             </TableCell>
           </TableRow>
           
           <TableRow v-if="filteredInvoices.length === 0">
-            <TableCell colspan="7" class="h-24 text-center text-muted-foreground">
+            <TableCell :colspan="visibleColumns.length" class="h-24 text-center text-muted-foreground">
               No invoices found matching your filters.
             </TableCell>
           </TableRow>
