@@ -126,7 +126,7 @@ const sessionTypes: SessionType[] = ['Online', 'In-Person', 'Group']
 const statuses: SessionStatus[] = ['Paid', 'Pending']
 
 const filteredSessions = computed(() => {
-  return sessions.value.filter(session => {
+  const filtered = sessions.value.filter(session => {
     // 1. Search Query
     const matchesSearch = 
       session.patient.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
@@ -158,14 +158,29 @@ const filteredSessions = computed(() => {
     
     return matchesSearch && matchesPatient && matchesType && matchesStatus && matchesDate
   })
+
+  // Map to include documentation logic
+  return filtered.map(s => {
+      // Mock logic for Documentation (50% chance based on ID parity)
+      const hasDocumentation = (s.id.charCodeAt(s.id.length - 1) % 2 === 0)
+      const docAmount = hasDocumentation ? 50 : 0
+      
+      return {
+          ...s,
+          hasDocumentation,
+          docAmount,
+          totalAmount: s.amount + docAmount
+      }
+  })
 })
 
 // --- Charts & Stats ---
 // Logic copied/adapted from OrganizationBilling
 const summary = computed(() => {
-  const total = sessions.value.reduce((sum, s) => sum + s.amount, 0)
-  const paid = sessions.value.filter(s => s.status === 'Paid').reduce((sum, s) => sum + s.amount, 0)
-  const pending = sessions.value.filter(s => s.status === 'Pending').reduce((sum, s) => sum + s.amount, 0)
+  // Use processed amounts
+  const total = filteredSessions.value.reduce((sum, s) => sum + s.totalAmount, 0)
+  const paid = filteredSessions.value.filter(s => s.status === 'Paid').reduce((sum, s) => sum + s.totalAmount, 0)
+  const pending = filteredSessions.value.filter(s => s.status === 'Pending').reduce((sum, s) => sum + s.totalAmount, 0)
   // Pending effectively acts as overdue if late, keeping simple stats for now
   return { total, paid, pending }
 })
@@ -275,8 +290,9 @@ function toggleCardVisibility(key: string) {
 }
 
 // --- Consolidated Billing Logic ---
-const isConsolidatedModalOpen = ref(false)
-const consolidatedInvoiceData = ref<any>(null)
+// --- Consolidated Billing & View Bill Logic ---
+const isInvoiceModalOpen = ref(false)
+const invoiceModalData = ref<any>(null)
 
 function handleCreateConsolidatedBill() {
   if (filteredSessions.value.length === 0) {
@@ -293,18 +309,37 @@ function handleCreateConsolidatedBill() {
   let totalGross = 0
 
   filteredSessions.value.forEach(session => {
-    const key = `${session.type}-${session.amount}`
+    // Add Main Session Item (Doctor Share)
+    const doctorShare = session.amount * (1 - commissionRate.value)
+    const key = `${session.type}-${doctorShare}`
+    
     if (!groups[key]) {
       groups[key] = {
         count: 0,
         totalAmount: 0,
-        description: `${session.duration}min. session ${session.type.toLowerCase()}`,
-        price: session.amount
+        description: `${session.duration}min. session ${session.type.toLowerCase()} (Dr. Share ${((1-commissionRate.value)*100).toFixed(0)}%)`,
+        price: doctorShare
       }
     }
     groups[key].count++
-    groups[key].totalAmount += session.amount
-    totalGross += session.amount
+    groups[key].totalAmount += doctorShare
+    totalGross += doctorShare
+
+    // Add Documentation Item Logic if applicable
+    if (session.hasDocumentation) {
+         const docKey = `doc-50`
+         if (!groups[docKey]) {
+            groups[docKey] = {
+                count: 0,
+                totalAmount: 0,
+                description: `Documentation Time`,
+                price: session.docAmount
+            }
+         }
+         groups[docKey].count++
+         groups[docKey].totalAmount += session.docAmount
+         totalGross += session.docAmount
+    }
   })
 
   // Create Service Items
@@ -316,21 +351,12 @@ function handleCreateConsolidatedBill() {
     amount: g.totalAmount
   }))
   
-  // Calculate Commission Deduction
-  const commissionAmount = totalGross * commissionRate.value
-  
-  // Add Commission Line Item
-  invoiceItems.push({
-    id: 'commission-deduction',
-    description: `Clinic Commission (${(commissionRate.value * 100).toFixed(0)}%)`,
-    qty: 1,
-    rate: -commissionAmount,
-    amount: -commissionAmount
-  })
+  // No explicit commission deduction line item needed.
+  // The items already reflect the Doctor's Share (Payout).
 
-  const totalNet = totalGross - commissionAmount
+  const totalNet = totalGross // totalGross here is already summing the payout portions
 
-  consolidatedInvoiceData.value = {
+  invoiceModalData.value = {
     id: `INV-${Math.floor(Math.random() * 10000)}`,
     date: new Date().toISOString().split('T')[0],
     
@@ -342,10 +368,57 @@ function handleCreateConsolidatedBill() {
     status: 'Draft',
     doctor: 'Dr. You', 
     doctorInitials: 'YO',
-    taxRate: 0 
+    taxRate: 21 
   }
 
-  isConsolidatedModalOpen.value = true
+  isInvoiceModalOpen.value = true
+}
+
+
+function handleViewBill(session: any) {
+    const items = []
+    
+    // 1. Session Item (Doctor Share)
+    // We bill the organization for our share, not the full amount.
+    const doctorShare = session.amount * (1 - commissionRate.value)
+    
+    items.push({
+        id: 'session-main',
+        description: `${session.duration}min. session ${session.type.toLowerCase()} (Dr. Share ${((1-commissionRate.value)*100).toFixed(0)}%)`,
+        qty: 1,
+        rate: doctorShare,
+        amount: doctorShare
+    })
+
+    // 2. Documentation Item
+    if (session.hasDocumentation) {
+        items.push({
+            id: 'session-doc',
+            description: 'Documentation Time',
+            qty: 1,
+            rate: session.docAmount,
+            amount: session.docAmount
+        })
+    }
+
+    // No explicit commission line item.
+    // Total is sum of shares + doc.
+    const net = doctorShare + (session.hasDocumentation ? session.docAmount : 0)
+
+    invoiceModalData.value = {
+        id: `INV-${session.id.split('-')[1]}`, // e.g. INV-201
+        date: session.date,
+        patient: session.patient,
+        patientInitials: session.patientInitials,
+        items: items,
+        amount: Number(net.toFixed(2)),
+        status: session.status === 'Paid' ? 'Paid' : 'Draft',
+        doctor: 'Dr. You',
+        doctorInitials: 'YO',
+        taxRate: 21
+    }
+    
+    isInvoiceModalOpen.value = true
 }
 
 // --- Actions & Helpers ---
@@ -391,11 +464,11 @@ function handleSaveConsolidated(invoice: any) {
     title: "Consolidated Bill Created",
     description: `Invoice ${invoice.id} created for €${invoice.amount}.`,
   })
-  isConsolidatedModalOpen.value = false
+  isInvoiceModalOpen.value = false
 }
 
 const totalFilteredAmount = computed(() => {
-  return filteredSessions.value.reduce((sum, session) => sum + session.amount, 0)
+  return filteredSessions.value.reduce((sum, session) => sum + session.totalAmount, 0)
 })
 
 // ... (Helpers)
@@ -720,12 +793,19 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
 
                   <!-- Patient -->
                   <template v-else-if="col.id === 'patient'">
-                     <div class="flex items-center gap-2">
-                       <Avatar class="h-6 w-6">
-                        <AvatarFallback class="bg-primary-50 text-primary-700 text-[10px]">{{ session.patientInitials }}</AvatarFallback>
-                      </Avatar>
-                      <span class="font-medium text-sm">{{ session.patient }}</span>
-                    </div>
+                     <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                           <Avatar class="h-6 w-6">
+                            <AvatarFallback class="bg-primary-50 text-primary-700 text-[10px]">{{ session.patientInitials }}</AvatarFallback>
+                          </Avatar>
+                          <span class="font-medium text-sm">{{ session.patient }}</span>
+                        </div>
+                        <!-- Nested Documentation Label -->
+                        <div v-if="session.hasDocumentation" class="flex items-center text-muted-foreground pl-8">
+                              <div class="w-3 h-3 border-l-2 border-b-2 border-slate-300 rounded-bl-sm inline-block mr-2 relative top-[-2px]"></div>
+                              <span class="font-medium text-xs">Documentation included</span>
+                          </div>
+                      </div>
                   </template>
 
                   <!-- Type -->
@@ -741,17 +821,42 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
 
                   <!-- Amount -->
                   <template v-else-if="col.id === 'amount'">
-                     <span class="font-medium">€{{ session.amount }}</span>
+                     <div class="flex items-center justify-end gap-1">
+                         <span class="font-medium">€{{ session.totalAmount }}</span>
+                         <TooltipProvider v-if="session.hasDocumentation">
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Info class="h-3 w-3 text-muted-foreground opacity-70" />
+                                </TooltipTrigger>
+                                <TooltipContent class="bg-white text-slate-950 border border-slate-200 shadow-lg">
+                                   <div class="flex flex-col gap-1 text-xs">
+                                       <div class="flex justify-between gap-4">
+                                           <span class="text-muted-foreground">Session:</span>
+                                           <span>€{{ session.amount }}</span>
+                                       </div>
+                                       <div class="flex justify-between gap-4">
+                                           <span class="text-muted-foreground">Documentation:</span>
+                                           <span>€{{ session.docAmount }}</span>
+                                       </div>
+                                       <div class="border-t border-slate-200 pt-1 mt-1 flex justify-between gap-4 font-bold">
+                                           <span>Total:</span>
+                                           <span>€{{ session.totalAmount }}</span>
+                                       </div>
+                                   </div>
+                               </TooltipContent>
+                            </Tooltip>
+                         </TooltipProvider>
+                     </div>
                   </template>
 
                   <!-- Clinic -->
                   <template v-else-if="col.id === 'clinic'">
-                     <span class="text-muted-foreground">€{{ (session.amount * commissionRate).toFixed(2) }}</span>
+                     <span class="text-muted-foreground">€{{ (session.totalAmount * commissionRate).toFixed(2) }}</span>
                   </template>
 
                   <!-- Billable -->
                   <template v-else-if="col.id === 'billable'">
-                     <span class="font-bold">€{{ (session.amount * (1 - commissionRate)).toFixed(2) }}</span>
+                     <span class="font-bold">€{{ (session.totalAmount * (1 - commissionRate)).toFixed(2) }}</span>
                   </template>
 
                   <!-- Status -->
@@ -781,6 +886,10 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
                           <DropdownMenuItem @click="handleDownload(session)">
                             <Download class="mr-2 h-4 w-4" />
                             <span>Download Bill</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem @click="handleViewBill(session)">
+                            <Eye class="mr-2 h-4 w-4" />
+                            <span>View Bill</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Edit class="mr-2 h-4 w-4" />
@@ -829,11 +938,11 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
     <!-- We might need to enhance InvoiceModal to accept 'initialItems' if it overrides them on 'updated', 
          but based on previous implementation it takes an 'invoice' prop which we are mocking. -->
     <InvoiceModal 
-      v-if="isConsolidatedModalOpen"
-      :is-open="isConsolidatedModalOpen" 
-      :invoice="consolidatedInvoiceData" 
+      v-if="isInvoiceModalOpen"
+      :is-open="isInvoiceModalOpen" 
+      :invoice="invoiceModalData" 
       :doctors="['Dr. You']"
-      @close="isConsolidatedModalOpen = false"
+      @close="isInvoiceModalOpen = false"
       @save="handleSaveConsolidated"
     />
 

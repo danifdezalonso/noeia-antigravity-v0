@@ -172,11 +172,32 @@ const pendingInvoicesList = computed(() => {
 })
 
 // --- DOCTOR VIEW LOGIC ---
+// Filters
+const doctorSearchQuery = ref('')
+const selectedDoctorStatus = ref('all')
+const doctorStartDate = ref<DateValue | undefined>(firstDayObj)
+const doctorEndDate = ref<DateValue | undefined>(todayObj) // Default to same range or independent? Keeping independent context as per plan
+
+const doctorStatuses = ['Unbilled', 'Billed', 'Paid']
+
 const doctorsData = computed(() => {
-  // Aggregate invoices by doctor
+  // 1. Filter invoices by Date Range first (Pre-aggregation)
+  const filteredInvoices = invoices.value.filter(inv => {
+      if (doctorStartDate.value && doctorEndDate.value) {
+         const invDate = inv.date
+         const startStr = doctorStartDate.value.toString()
+         const endStr = doctorEndDate.value.toString()
+         return invDate >= startStr && invDate <= endStr
+      } else if (doctorStartDate.value) {
+         return inv.date >= doctorStartDate.value.toString()
+      }
+      return true
+  })
+
+  // 2. Aggregate invoices by doctor
   const map = new Map()
   
-  invoices.value.forEach(inv => {
+  filteredInvoices.forEach(inv => {
     if (!map.has(inv.doctor)) {
       map.set(inv.doctor, {
         id: inv.doctor.replace(/\s+/g, '-').toLowerCase(),
@@ -207,21 +228,29 @@ const doctorsData = computed(() => {
     })
   })
   
-  // Convert to array and add mock status logic
-  return Array.from(map.values()).map((doc: any) => {
-    // Mock logic initial:
-    // Dr. Ana -> 'Billed' (Using 'Pending' color)
-    // Dr. Marc -> 'Paid' (Green)
-    // Others -> 'Unbilled' (Gray/Blue)
+  // 3. Convert to array, apply overrides, and Filter by Search/Status (Post-aggregation)
+  let results = Array.from(map.values()).map((doc: any) => {
     let initialStatus = 'Unbilled'
     if (doc.name.includes('Ana')) initialStatus = 'Billed'
     else if (doc.name.includes('Marc')) initialStatus = 'Paid'
     
-    // Apply override if exists, otherwise initial
     doc.status = doctorsStatusOverrides.value[doc.id] || initialStatus
     
     return doc
   })
+
+  // Filter by Search
+  if (doctorSearchQuery.value) {
+      const q = doctorSearchQuery.value.toLowerCase()
+      results = results.filter(d => d.name.toLowerCase().includes(q))
+  }
+
+  // Filter by Status
+  if (selectedDoctorStatus.value !== 'all') {
+      results = results.filter(d => d.status === selectedDoctorStatus.value)
+  }
+
+  return results
 })
 
 const totalCommission = computed(() => doctorsData.value.reduce((sum: number, d: any) => sum + d.commissionDue, 0))
@@ -477,7 +506,34 @@ const selectedInvoice = ref<any>(null)
 const isInvoiceModalOpen = ref(false)
 
 function openInvoiceModal(invoice: any) {
-  selectedInvoice.value = { ...invoice }
+  // Construct items for the modal based on invoice data
+  const items = [
+      {
+          id: '1',
+          description: 'Professional Service',
+          qty: 1,
+          rate: invoice.amount
+      }
+  ]
+
+  if (invoice.hasDocumentation) {
+      items.push({
+          id: '2',
+          description: 'Documentation',
+          qty: 1,
+          rate: invoice.docAmount
+      })
+  }
+
+  selectedInvoice.value = { 
+      ...invoice,
+      // If we used totalAmount in the table, the modal should probably reflect that sum.
+      // The modal calculates total from items, so passing items is key.
+      items: items,
+      // Ensure amount passed is the total manually if needed by the modal init logic, 
+      // though the modal re-calculates based on items.
+      amount: invoice.totalAmount 
+  }
   isInvoiceModalOpen.value = true
 }
 
@@ -614,6 +670,37 @@ function handleSaveEvent() {
             </Card>
          </div>
 
+         <!-- Filters & Table Settings for Doctors -->
+         <div class="flex flex-col sm:flex-row gap-4 mb-4">
+            <div class="relative flex-1">
+                <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                v-model="doctorSearchQuery"
+                type="text" 
+                placeholder="Filter doctors..." 
+                class="pl-9 bg-white"
+                />
+            </div>
+            <div class="flex gap-4 items-center">
+                <Select v-model="selectedDoctorStatus">
+                    <SelectTrigger class="w-[150px] bg-white">
+                        <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem v-for="status in doctorStatuses" :key="status" :value="status">{{ status }}</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                <!-- Date Filter -->
+                <div class="flex items-center gap-2">
+                    <DatePicker v-model="doctorStartDate" placeholder="Start date" class="w-[140px]" />
+                    <span class="text-muted-foreground">-</span>
+                    <DatePicker v-model="doctorEndDate" placeholder="End date" class="w-[140px]" />
+                </div>
+            </div>
+         </div>
+
          <!-- Doctors Table -->
          <div class="rounded-md border bg-card shadow-sm overflow-hidden">
             <Table>
@@ -622,7 +709,7 @@ function handleSaveEvent() {
                      <TableHead class="w-[50px]"></TableHead>
                      <TableHead>Doctor</TableHead>
                      <TableHead class="text-right">Total Volume</TableHead>
-                     <TableHead class="text-right font-bold text-primary">Commission (30%)</TableHead>
+                     <TableHead class="text-right">Commission (30%)</TableHead>
                      <TableHead>Bill Status</TableHead>
                      <TableHead class="text-right">Actions</TableHead>
                   </TableRow>
@@ -653,7 +740,7 @@ function handleSaveEvent() {
                             </div>
                          </TableCell>
                          <TableCell class="text-right text-muted-foreground">€{{ doc.totalVolume.toLocaleString() }}</TableCell>
-                         <TableCell class="text-right font-bold text-lg">€{{ doc.commissionDue.toFixed(2) }}</TableCell>
+                         <TableCell class="text-right font-medium text-sm">€{{ doc.commissionDue.toFixed(2) }}</TableCell>
                          <TableCell>
                             <DropdownMenu>
                                 <DropdownMenuTrigger as-child>
@@ -1075,7 +1162,7 @@ function handleSaveEvent() {
                                <TooltipTrigger as-child>
                                    <Info class="w-3.5 h-3.5 text-muted-foreground cursor-help opacity-70 hover:opacity-100" />
                                </TooltipTrigger>
-                               <TooltipContent>
+                               <TooltipContent class="bg-white text-slate-950 border border-slate-200 shadow-lg">
                                    <div class="flex flex-col gap-1 text-xs">
                                        <div class="flex justify-between gap-4">
                                            <span class="text-muted-foreground">Session:</span>
@@ -1085,7 +1172,7 @@ function handleSaveEvent() {
                                            <span class="text-muted-foreground">Documentation:</span>
                                            <span>€{{ invoice.docAmount }}</span>
                                        </div>
-                                       <div class="border-t pt-1 mt-1 flex justify-between gap-4 font-bold">
+                                       <div class="border-t border-slate-200 pt-1 mt-1 flex justify-between gap-4 font-bold">
                                            <span>Total:</span>
                                            <span>€{{ invoice.totalAmount }}</span>
                                        </div>
