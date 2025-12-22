@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue'
 import { Search, MoreHorizontal, Calendar, User, Clock, Plus } from 'lucide-vue-next'
-import Button from '@/components/ui/Button.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 // Mock Data
 const patients = ref([
@@ -12,7 +18,8 @@ const patients = ref([
     status: 'Active', 
     lastSession: '2023-10-25',
     nextSession: '2023-11-02',
-    avatar: 'https://i.pravatar.cc/150?u=sarah'
+    avatar: 'https://i.pravatar.cc/150?u=sarah',
+    initials: 'SJ'
   },
   { 
     id: 2, 
@@ -21,7 +28,8 @@ const patients = ref([
     status: 'Active', 
     lastSession: '2023-10-20',
     nextSession: '2023-11-05',
-    avatar: 'https://i.pravatar.cc/150?u=michael'
+    avatar: 'https://i.pravatar.cc/150?u=michael',
+    initials: 'MB'
   },
   { 
     id: 3, 
@@ -30,7 +38,8 @@ const patients = ref([
     status: 'On Hold', 
     lastSession: '2023-09-15',
     nextSession: '-',
-    avatar: 'https://i.pravatar.cc/150?u=emma'
+    avatar: 'https://i.pravatar.cc/150?u=emma',
+    initials: 'EW'
   },
   { 
     id: 4, 
@@ -39,7 +48,8 @@ const patients = ref([
     status: 'Active', 
     lastSession: '2023-10-28',
     nextSession: '2023-11-04',
-    avatar: 'https://i.pravatar.cc/150?u=david'
+    avatar: 'https://i.pravatar.cc/150?u=david',
+    initials: 'DL'
   },
   { 
     id: 5, 
@@ -48,7 +58,8 @@ const patients = ref([
     status: 'Active', 
     lastSession: '2023-10-22',
     nextSession: '2023-10-30',
-    avatar: 'https://i.pravatar.cc/150?u=laura'
+    avatar: 'https://i.pravatar.cc/150?u=laura',
+    initials: 'LP'
   },
   { 
     id: 6, 
@@ -57,14 +68,15 @@ const patients = ref([
     status: 'Inactive', 
     lastSession: '2023-08-10',
     nextSession: '-',
-    avatar: 'https://i.pravatar.cc/150?u=hugo'
+    avatar: 'https://i.pravatar.cc/150?u=hugo',
+    initials: 'HG'
   },
 ])
 
 // Filters
 const searchQuery = ref('')
-const selectedDoctor = ref('')
-const selectedStatus = ref('')
+const selectedDoctor = ref('all')
+const selectedStatus = ref('all')
 
 const doctors = ['Dr. Anna Ruiz', 'Dr. Marc Vidal', 'Dr. Júlia Serra', 'Dr. Omar López']
 const statuses = ['Active', 'On Hold', 'Inactive']
@@ -72,8 +84,8 @@ const statuses = ['Active', 'On Hold', 'Inactive']
 const filteredPatients = computed(() => {
   return patients.value.filter(patient => {
     const matchesSearch = patient.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesDoctor = !selectedDoctor.value || patient.assignedDoctor === selectedDoctor.value
-    const matchesStatus = !selectedStatus.value || patient.status === selectedStatus.value
+    const matchesDoctor = selectedDoctor.value === 'all' || patient.assignedDoctor === selectedDoctor.value
+    const matchesStatus = selectedStatus.value === 'all' || patient.status === selectedStatus.value
     
     return matchesSearch && matchesDoctor && matchesStatus
   })
@@ -97,7 +109,8 @@ function openAddModal() {
       status: 'Onboarding',
       lastSession: '-',
       nextSession: '-',
-      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`
+      avatar: `https://i.pravatar.cc/150?u=${Date.now()}`,
+      initials: 'NP'
     }
     patients.value.push(newPatient)
   })
@@ -105,12 +118,12 @@ function openAddModal() {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-in fade-in duration-500">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Patients</h1>
-        <p class="text-slate-500">View and manage patient records across the organization.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Patients</h1>
+        <p class="text-muted-foreground">View and manage patient records across the organization.</p>
       </div>
       <Button @click="openAddModal">
         <Plus class="w-4 h-4 mr-2" />
@@ -119,99 +132,114 @@ function openAddModal() {
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4">
+    <div class="bg-card p-4 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4">
       <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input 
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input 
           v-model="searchQuery"
           type="text" 
           placeholder="Search patients..." 
-          class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
+          class="pl-9"
+        />
       </div>
       <div class="flex gap-4">
-        <select 
-          v-model="selectedDoctor"
-          class="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-        >
-          <option value="">All Doctors</option>
-          <option v-for="doc in doctors" :key="doc" :value="doc">{{ doc }}</option>
-        </select>
-        <select 
-          v-model="selectedStatus"
-          class="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
-        >
-          <option value="">All Statuses</option>
-          <option v-for="status in statuses" :key="status" :value="status">{{ status }}</option>
-        </select>
+        <Select v-model="selectedDoctor">
+          <SelectTrigger class="w-[180px]">
+            <SelectValue placeholder="All Doctors" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Doctors</SelectItem>
+            <SelectItem v-for="doc in doctors" :key="doc" :value="doc">{{ doc }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="selectedStatus">
+          <SelectTrigger class="w-[150px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem v-for="status in statuses" :key="status" :value="status">{{ status }}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
 
     <!-- List -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th class="px-6 py-4 font-semibold text-slate-700">Patient</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Assigned Doctor</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Status</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Last Session</th>
-              <th class="px-6 py-4 font-semibold text-slate-700">Next Session</th>
-              <th class="px-6 py-4 font-semibold text-slate-700 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="patient in filteredPatients" :key="patient.id" class="hover:bg-slate-50 transition-colors cursor-pointer">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <img :src="patient.avatar" :alt="patient.name" class="w-8 h-8 rounded-full object-cover border border-slate-200" />
-                  <span class="font-medium text-slate-900">{{ patient.name }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2 text-slate-600">
-                  <User class="w-3 h-3 text-slate-400" />
-                  {{ patient.assignedDoctor }}
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <span 
-                  class="px-2.5 py-1 rounded-full text-xs font-medium"
-                  :class="{
-                    'bg-green-100 text-green-700': patient.status === 'Active',
-                    'bg-orange-100 text-orange-700': patient.status === 'On Hold',
-                    'bg-slate-100 text-slate-600': patient.status === 'Inactive'
-                  }"
-                >
-                  {{ patient.status }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-slate-600">
-                <div class="flex items-center gap-2">
-                  <Clock class="w-3 h-3 text-slate-400" />
-                  {{ formatDate(patient.lastSession) }}
-                </div>
-              </td>
-              <td class="px-6 py-4 text-slate-600">
-                <div class="flex items-center gap-2">
-                  <Calendar class="w-3 h-3 text-slate-400" />
-                  {{ formatDate(patient.nextSession) }}
-                </div>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <button class="text-slate-400 hover:text-primary-600 transition-colors">
-                  <MoreHorizontal class="w-5 h-5" />
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div v-if="filteredPatients.length === 0" class="p-8 text-center text-slate-500">
-        No patients found matching your filters.
-      </div>
+    <div class="rounded-md border bg-card shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Patient</TableHead>
+            <TableHead>Assigned Doctor</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Last Session</TableHead>
+            <TableHead>Next Session</TableHead>
+            <TableHead class="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="patient in filteredPatients" :key="patient.id" class="cursor-pointer hover:bg-accent/50">
+            <TableCell>
+              <div class="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage :src="patient.avatar" :alt="patient.name" />
+                  <AvatarFallback>{{ patient.initials }}</AvatarFallback>
+                </Avatar>
+                <span class="font-medium">{{ patient.name }}</span>
+              </div>
+            </TableCell>
+            <TableCell>
+              <div class="flex items-center gap-2 text-muted-foreground">
+                <User class="w-3 h-3" />
+                {{ patient.assignedDoctor }}
+              </div>
+            </TableCell>
+            <TableCell>
+              <Badge 
+                :variant="patient.status === 'Active' ? 'default' : patient.status === 'On Hold' ? 'secondary' : 'outline'"
+                :class="{
+                  'bg-green-100 text-green-700 hover:bg-green-100': patient.status === 'Active',
+                  'bg-orange-100 text-orange-700 hover:bg-orange-100': patient.status === 'On Hold',
+                  'text-muted-foreground': patient.status === 'Inactive'
+                }"
+              >
+                {{ patient.status }}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <div class="flex items-center gap-2 text-muted-foreground">
+                <Clock class="w-3 h-3" />
+                {{ formatDate(patient.lastSession) }}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div class="flex items-center gap-2 text-muted-foreground">
+                <Calendar class="w-3 h-3" />
+                {{ formatDate(patient.nextSession) }}
+              </div>
+            </TableCell>
+            <TableCell class="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal class="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                  <DropdownMenuItem>Edit Patient</DropdownMenuItem>
+                  <DropdownMenuItem class="text-red-600">Archive</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
+          <TableRow v-if="filteredPatients.length === 0">
+            <TableCell colspan="6" class="h-24 text-center text-muted-foreground">
+              No patients found matching your filters.
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
   </div>
 </template>

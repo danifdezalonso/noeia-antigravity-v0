@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Search, Plus, MapPin, Users, Edit2, Trash2, X } from 'lucide-vue-next'
-import Button from '@/components/ui/Button.vue'
+import { Search, Plus, MapPin, Users, Edit2, Trash2 } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 
 // Mock Data
 const rooms = ref([
@@ -102,15 +109,24 @@ function getAssignedText(room: any) {
   if (assignedNames.length <= 2) return assignedNames.join(', ')
   return `${assignedNames.length} Doctors`
 }
+
+function toggleDoctorSelection(id: number) {
+  const index = form.value.assignedDoctorIds.indexOf(id)
+  if (index === -1) {
+    form.value.assignedDoctorIds.push(id)
+  } else {
+    form.value.assignedDoctorIds.splice(index, 1)
+  }
+}
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-in fade-in duration-500">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Office Management</h1>
-        <p class="text-slate-500">Manage office rooms and assignments.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Office Management</h1>
+        <p class="text-muted-foreground">Manage office rooms and assignments.</p>
       </div>
       <Button @click="openCreateModal">
         <Plus class="w-4 h-4 mr-2" />
@@ -119,138 +135,123 @@ function getAssignedText(room: any) {
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+    <div class="bg-card p-4 rounded-xl border shadow-sm">
       <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input 
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input 
           v-model="searchQuery"
           type="text" 
           placeholder="Search rooms..." 
-          class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-        >
+          class="pl-9"
+        />
       </div>
     </div>
 
     <!-- List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="room in filteredRooms" :key="room.id" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-        <div class="p-5">
-          <div class="flex justify-between items-start mb-4">
+      <Card v-for="room in filteredRooms" :key="room.id" class="hover:shadow-md transition-shadow">
+        <CardHeader class="pb-3">
+          <div class="flex justify-between items-start">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600">
+              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                 <MapPin class="w-5 h-5" />
               </div>
               <div>
-                <h3 class="font-semibold text-slate-900">{{ room.number }}</h3>
-                <p class="text-sm text-slate-500">{{ room.name || 'Unnamed Room' }}</p>
+                <CardTitle class="text-base">{{ room.number }}</CardTitle>
+                <p class="text-sm text-muted-foreground">{{ room.name || 'Unnamed Room' }}</p>
               </div>
             </div>
             <div class="flex gap-1">
-              <button @click="openEditModal(room)" class="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors">
-                <Edit2 class="w-4 h-4" />
-              </button>
-              <button @click="deleteRoom(room.id)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
+              <Button variant="ghost" size="icon" class="h-8 w-8" @click="openEditModal(room)">
+                <Edit2 class="w-4 h-4 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-destructive" @click="deleteRoom(room.id)">
                 <Trash2 class="w-4 h-4" />
-              </button>
+              </Button>
             </div>
+          </div>
+        </CardHeader>
+        <CardContent class="space-y-3">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded-lg">
+            <Users class="w-4 h-4" />
+            <span class="font-medium text-foreground">Assigned to:</span>
+            <span class="truncate">{{ getAssignedText(room) }}</span>
           </div>
           
-            <div class="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded-lg mb-2">
-              <Users class="w-4 h-4 text-slate-400" />
-              <span class="font-medium">Assigned to:</span>
-              <span class="truncate">{{ getAssignedText(room) }}</span>
-            </div>
-            
-            <div class="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 p-2 rounded-lg">
-              <div class="w-4 h-4 flex items-center justify-center text-slate-400 font-bold text-[10px] border border-slate-400 rounded-sm">
-                {{ room.seats }}
-              </div>
-              <span class="font-medium">Seats:</span>
-              <span>{{ room.seats }}</span>
-            </div>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded-lg">
+            <Badge variant="outline" class="h-5 w-5 flex items-center justify-center p-0 text-[10px]">
+              {{ room.seats }}
+            </Badge>
+            <span class="font-medium text-foreground">Seats:</span>
+            <span>{{ room.seats }}</span>
           </div>
-        </div>
-      </div>
-
+        </CardContent>
+      </Card>
+    </div>
 
     <!-- Modal -->
-    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="isModalOpen = false"></div>
-      <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <Dialog :open="isModalOpen" @update:open="isModalOpen = $event">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{{ editingRoom ? 'Edit Room' : 'Add New Room' }}</DialogTitle>
+          <DialogDescription>
+            Configure room details and assignments.
+          </DialogDescription>
+        </DialogHeader>
         
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 class="font-semibold text-lg text-slate-900">
-            {{ editingRoom ? 'Edit Room' : 'Add New Room' }}
-          </h3>
-          <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-600">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-        
-        <div class="p-6 space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1 uppercase">Room Number <span class="text-red-500">*</span></label>
-            <input 
-              v-model="form.number" 
-              type="text" 
-              placeholder="e.g. 101"
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
+        <div class="grid gap-4 py-4">
+          <div class="grid gap-2">
+            <Label for="number">Room Number <span class="text-destructive">*</span></Label>
+            <Input id="number" v-model="form.number" placeholder="e.g. 101" />
           </div>
           
-          <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1 uppercase">Room Name (Optional)</label>
-            <input 
-              v-model="form.name" 
-              type="text" 
-              placeholder="e.g. Consultation A"
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
+          <div class="grid gap-2">
+            <Label for="name">Room Name (Optional)</Label>
+            <Input id="name" v-model="form.name" placeholder="e.g. Consultation A" />
           </div>
 
-          <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1 uppercase">Available Seats (1-6)</label>
-            <input 
+          <div class="grid gap-2">
+            <Label for="seats">Available Seats (1-6)</Label>
+            <Input 
+              id="seats" 
               v-model.number="form.seats" 
               type="number" 
               min="1"
               max="6"
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
+            />
           </div>
 
-          <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1 uppercase">Assignment</label>
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="form.assignedTo" value="all" class="text-primary-600 focus:ring-primary-500">
-                <span class="text-sm text-slate-700">All Doctors</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="form.assignedTo" value="specific" class="text-primary-600 focus:ring-primary-500">
-                <span class="text-sm text-slate-700">Specific Doctors</span>
-              </label>
+          <div class="grid gap-2">
+            <Label>Assignment</Label>
+            <RadioGroup v-model="form.assignedTo" class="flex flex-col space-y-1">
+              <div class="flex items-center space-x-2">
+                <RadioGroupItem id="all" value="all" />
+                <Label for="all" class="font-normal cursor-pointer">All Doctors</Label>
+              </div>
+              <div class="flex items-center space-x-2">
+                <RadioGroupItem id="specific" value="specific" />
+                <Label for="specific" class="font-normal cursor-pointer">Specific Doctors</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div v-if="form.assignedTo === 'specific'" class="grid gap-2 border rounded-lg p-3 max-h-40 overflow-y-auto">
+            <div v-for="doc in doctors" :key="doc.id" class="flex items-center space-x-2">
+              <Checkbox 
+                :id="`doc-${doc.id}`" 
+                :checked="form.assignedDoctorIds.includes(doc.id)"
+                @update:checked="toggleDoctorSelection(doc.id)"
+              />
+              <Label :for="`doc-${doc.id}`" class="text-sm font-normal cursor-pointer">{{ doc.name }}</Label>
             </div>
           </div>
-
-          <div v-if="form.assignedTo === 'specific'" class="space-y-2 border border-slate-200 rounded-lg p-3 max-h-40 overflow-y-auto">
-            <label v-for="doc in doctors" :key="doc.id" class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded">
-              <input 
-                type="checkbox" 
-                :value="doc.id" 
-                v-model="form.assignedDoctorIds"
-                class="rounded text-primary-600 focus:ring-primary-500"
-              >
-              <span class="text-sm text-slate-700">{{ doc.name }}</span>
-            </label>
-          </div>
         </div>
 
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-          <button @click="isModalOpen = false" class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900">Cancel</button>
+        <DialogFooter>
+          <Button variant="outline" @click="isModalOpen = false">Cancel</Button>
           <Button @click="saveRoom">Save Room</Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

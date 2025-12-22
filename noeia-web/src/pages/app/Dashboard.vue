@@ -112,12 +112,7 @@ async function handleCompleteSession(data: any) {
   }
 }
 
-// Redirect Organization users to their specific dashboard
-import { useRouter } from 'vue-router'
-const router = useRouter()
-if (userRole.value === 'organization') {
-  router.push('/app/organization')
-}
+// Redirect logic removed to allow organization admins to view doctor dashboard
 </script>
 
 <template>

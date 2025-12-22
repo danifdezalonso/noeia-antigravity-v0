@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ChevronLeft, ChevronRight, Check, Plus } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Check, Plus, FileText } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import CalendarEventModal from '@/components/org/CalendarEventModal.vue'
 
 // Mock Doctors & Colors
 const doctors = [
-  { id: 1, name: 'Dr. Anna Ruiz', color: 'bg-blue-100 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
-  { id: 2, name: 'Dr. Marc Vidal', color: 'bg-green-100 text-green-700 border-green-200', dot: 'bg-green-500' },
-  { id: 3, name: 'Dr. Júlia Serra', color: 'bg-purple-100 text-purple-700 border-purple-200', dot: 'bg-purple-500' },
-  { id: 4, name: 'Dr. Omar López', color: 'bg-orange-100 text-orange-700 border-orange-200', dot: 'bg-orange-500' },
+  { id: 1, name: 'Dr. Anna Ruiz', initials: 'AR', color: 'bg-blue-100 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+  { id: 2, name: 'Dr. Marc Vidal', initials: 'MV', color: 'bg-green-100 text-green-700 border-green-200', dot: 'bg-green-500' },
+  { id: 3, name: 'Dr. Júlia Serra', initials: 'JS', color: 'bg-purple-100 text-purple-700 border-purple-200', dot: 'bg-purple-500' },
+  { id: 4, name: 'Dr. Omar López', initials: 'OL', color: 'bg-orange-100 text-orange-700 border-orange-200', dot: 'bg-orange-500' },
 ]
 
 // Mock Patients
@@ -40,7 +43,7 @@ function toggleDoctor(id: number) {
 
 // Mock Events
 const events = ref([
-  { id: 1, doctorId: 1, type: 'Session', title: 'Laura P.', time: '10:00 - 11:00', startTime: '10:00', endTime: '11:00', day: 1, patientId: 5, location: 'Offline', roomId: 1 }, // Mon
+  { id: 1, doctorId: 1, type: 'Session', title: 'Laura P.', time: '10:00 - 11:00', startTime: '10:00', endTime: '11:00', day: 1, patientId: 5, location: 'Offline', roomId: 1, hasExtras: true }, // Mon
   { id: 2, doctorId: 2, type: 'Session', title: 'Hugo G.', time: '11:30 - 12:30', startTime: '11:30', endTime: '12:30', day: 1, patientId: 6, location: 'Online', roomId: null }, // Mon
   { id: 3, doctorId: 3, type: 'Session', title: 'Carlos R.', time: '15:00 - 16:00', startTime: '15:00', endTime: '16:00', day: 2, patientId: null, location: 'Online', roomId: null }, // Tue
   { id: 4, doctorId: 4, type: 'Session', title: 'Sofía D.', time: '09:00 - 09:45', startTime: '09:00', endTime: '09:45', day: 3, patientId: null, location: 'Offline', roomId: 2 }, // Wed
@@ -59,6 +62,10 @@ const hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '1
 
 const filteredEvents = computed(() => {
   return events.value.filter(event => selectedDoctors.value.includes(event.doctorId))
+})
+
+const existingSessions = computed(() => {
+  return events.value.filter(e => e.type === 'Session')
 })
 
 function getEventsForDayAndHour(dayIndex: number, hour: string) {
@@ -87,10 +94,6 @@ function openCreateModal(initialData: any = {}) {
   selectedEvent.value = null
   // Pre-fill data if provided (e.g. from drag)
   if (initialData.startTime) {
-    // We need to pass this somehow to the modal, but the modal resets form on open.
-    // Let's modify modal to accept initialForm state or handle it here.
-    // For now, we'll just open it blank or with minimal defaults if we don't change modal.
-    // Actually, let's hack it by passing a "fake" event object that looks like a new event
     selectedEvent.value = {
       ...initialData,
       id: null, // Ensure it's treated as new
@@ -229,66 +232,67 @@ function isSlotSelected(dayIndex: number, hour: string) {
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Calendar</h1>
-        <p class="text-slate-500">Manage schedules for all professionals.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Calendar</h1>
+        <p class="text-muted-foreground">Manage schedules and appointments for your team.</p>
       </div>
       
       <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1">
-          <button class="p-1 hover:bg-slate-50 rounded-md text-slate-500">
-            <ChevronLeft class="w-5 h-5" />
-          </button>
-          <span class="text-sm font-medium px-2">Oct 23 - 27, 2023</span>
-          <button class="p-1 hover:bg-slate-50 rounded-md text-slate-500">
-            <ChevronRight class="w-5 h-5" />
-          </button>
+        <div class="flex items-center gap-1 bg-card border rounded-lg p-1 shadow-sm">
+          <Button variant="ghost" size="icon" class="h-7 w-7">
+            <ChevronLeft class="w-4 h-4" />
+          </Button>
+          <span class="text-sm font-medium px-3 text-slate-700">Oct 23 - 27, 2023</span>
+          <Button variant="ghost" size="icon" class="h-7 w-7">
+            <ChevronRight class="w-4 h-4" />
+          </Button>
         </div>
         
-        <button 
-          @click="openCreateModal"
-          class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-        >
-          <Plus class="w-4 h-4" />
+        <Button @click="openCreateModal({})">
+          <Plus class="w-4 h-4 mr-2" />
           New Event
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- Doctor Filters -->
     <div class="flex flex-wrap gap-2 flex-shrink-0">
-      <button 
+      <Badge 
         v-for="doctor in doctors" 
         :key="doctor.id"
-        @click="toggleDoctor(doctor.id)"
-        class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border"
+        variant="outline"
+        class="cursor-pointer pl-1 pr-3 py-1 gap-2 transition-all hover:bg-accent border shadow-sm"
         :class="selectedDoctors.includes(doctor.id) 
-          ? 'bg-white border-slate-300 shadow-sm text-slate-900' 
-          : 'bg-slate-50 border-transparent text-slate-400 opacity-60'"
+          ? 'bg-card border-slate-300 text-foreground' 
+          : 'bg-muted/50 border-transparent text-muted-foreground opacity-60'"
+        @click="toggleDoctor(doctor.id)"
       >
-        <span class="w-2 h-2 rounded-full" :class="doctor.dot"></span>
+        <Avatar class="h-5 w-5 border border-slate-200">
+           <!-- Ideally we put real images here, using fallback for now -->
+           <AvatarFallback class="text-[9px] bg-primary-50 text-primary-700">{{ doctor.initials }}</AvatarFallback>
+        </Avatar>
         {{ doctor.name }}
-        <Check v-if="selectedDoctors.includes(doctor.id)" class="w-3 h-3 ml-1 text-slate-400" />
-      </button>
+        <Check v-if="selectedDoctors.includes(doctor.id)" class="w-3 h-3 text-muted-foreground ml-auto" />
+      </Badge>
     </div>
 
     <!-- Calendar Grid -->
-    <div class="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-0 select-none" @mouseup="handleMouseUp">
+    <div class="flex-1 bg-card rounded-xl border shadow-sm overflow-hidden flex flex-col min-h-0 select-none" @mouseup="handleMouseUp">
       <!-- Days Header -->
-      <div class="grid grid-cols-6 border-b border-slate-200 bg-slate-50 flex-shrink-0">
-        <div class="p-4 border-r border-slate-200 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div class="grid grid-cols-6 border-b bg-muted/40 flex-shrink-0">
+        <div class="p-3 border-r text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-center">
           Time
         </div>
-        <div v-for="day in weekDays" :key="day.name" class="p-3 border-r border-slate-200 last:border-r-0 text-center">
-          <div class="text-sm font-semibold text-slate-700">{{ day.name }}</div>
-          <div class="text-xs text-slate-500">{{ day.date }}</div>
+        <div v-for="day in weekDays" :key="day.name" class="p-3 border-r last:border-r-0 text-center">
+          <div class="text-sm font-semibold text-foreground">{{ day.name }}</div>
+          <div class="text-xs text-muted-foreground font-medium">{{ day.date }}</div>
         </div>
       </div>
 
       <!-- Time Slots -->
       <div class="overflow-y-auto flex-1">
-        <div v-for="hour in hours" :key="hour" class="grid grid-cols-6 border-b border-slate-100 last:border-b-0 min-h-[40px]">
+        <div v-for="hour in hours" :key="hour" class="grid grid-cols-6 border-b last:border-b-0 min-h-[48px]">
           <!-- Time Column -->
-          <div class="p-2 border-r border-slate-200 text-xs text-slate-500 text-center sticky left-0 bg-white h-[40px] flex items-center justify-center">
+          <div class="p-2 border-r text-xs font-medium text-muted-foreground text-center sticky left-0 bg-card h-[48px] flex items-center justify-center">
             {{ hour }}
           </div>
           
@@ -296,14 +300,14 @@ function isSlotSelected(dayIndex: number, hour: string) {
           <div 
             v-for="(day, index) in weekDays" 
             :key="day.name" 
-            class="border-r border-slate-100 last:border-r-0 relative p-0.5 group h-[40px]"
+            class="border-r last:border-r-0 relative p-0.5 group h-[48px]"
             @mousedown="handleMouseDown(index, hour)"
             @mouseover="handleMouseOver(index, hour)"
           >
             <!-- Drag Selection Highlight -->
             <div 
               v-if="isSlotSelected(index, hour)"
-              class="absolute inset-0 bg-primary-100 opacity-50 z-0 pointer-events-none"
+              class="absolute inset-0 bg-primary/20 z-0 pointer-events-none transition-colors"
             ></div>
 
             <!-- Events -->
@@ -311,19 +315,22 @@ function isSlotSelected(dayIndex: number, hour: string) {
               v-for="event in getEventsForDayAndHour(index, hour)" 
               :key="event.id"
               @click.stop="openEditModal(event)"
-              class="absolute inset-x-0.5 p-1 rounded border text-[10px] cursor-pointer hover:shadow-md transition-shadow z-10 overflow-hidden"
+              class="absolute inset-x-1 p-1.5 rounded border text-[10px] cursor-pointer hover:shadow-md transition-all z-10 overflow-hidden flex flex-col justify-start"
               :class="getEventStyle(event)"
               :style="{ top: '2px', height: 'calc(100% - 4px)' }"
             >
-              <div class="font-semibold truncate">{{ event.title }}</div>
-              <div v-if="event.type !== 'Block'" class="mt-0.5 flex items-center gap-1 opacity-75">
-                <span class="w-1 h-1 rounded-full bg-current"></span>
-                <span class="truncate">{{ getDoctorById(event.doctorId)?.name.split(' ')[1] }}</span>
+              <div class="font-bold truncate leading-tight">{{ event.title }}</div>
+              <div v-if="event.type !== 'Block'" class="mt-0.5 flex items-center gap-1 opacity-90">
+                <Avatar class="h-3 w-3">
+                    <AvatarFallback class="text-[6px] bg-black/10">{{ getDoctorById(event.doctorId)?.initials }}</AvatarFallback>
+                </Avatar>
+                <span class="truncate">{{ getDoctorById(event.doctorId)?.name }}</span>
+                <FileText v-if="event.hasExtras" class="w-2.5 h-2.5 ml-auto text-current opacity-70" />
               </div>
             </div>
             
             <!-- Hover Effect -->
-            <div class="absolute inset-0 bg-slate-50 opacity-0 group-hover:opacity-50 transition-opacity pointer-events-none"></div>
+            <div class="absolute inset-0 bg-accent/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
           </div>
         </div>
       </div>
@@ -335,6 +342,7 @@ function isSlotSelected(dayIndex: number, hour: string) {
       :doctors="doctors"
       :patients="patients"
       :rooms="rooms"
+      :existing-sessions="existingSessions"
       @close="isModalOpen = false"
       @save="handleSaveEvent"
       @delete="handleDeleteEvent"
