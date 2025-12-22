@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { User, Mail, Phone, MapPin, Calendar, FileText, Tag, Shield, Link as LinkIcon, AlertCircle } from 'lucide-vue-next'
+import { User, Mail, Phone, MapPin, Calendar, FileText, Tag, Shield, Link as LinkIcon, AlertCircle, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/components/ui/toast/use-toast'
 
 import { useAppStore } from '@/stores/app'
 import { storeToRefs } from 'pinia'
@@ -22,6 +23,7 @@ const emit = defineEmits(['close', 'save', 'update:isOpen'])
 
 const store = useAppStore()
 const { professionals, clients: existingPatients } = storeToRefs(store)
+const { toast } = useToast()
 
 // Form State
 const form = ref({
@@ -43,6 +45,7 @@ const form = ref({
 
 // Validation State
 const errors = ref<Record<string, string>>({})
+const isLoading = ref(false)
 
 const insuranceProviders = [
   'Sanitas', 'Adeslas', 'Mapfre', 'DKV', 'Asisa'
@@ -108,19 +111,43 @@ function validate() {
   return isValid
 }
 
-function save() {
+async function save() {
   if (!validate()) return
 
-  // Process tags
-  const tagsArray = form.value.tags.split(',').map(t => t.trim()).filter(t => t)
+  isLoading.value = true
+  
+  try {
+    // Process tags
+    // const tagsArray = form.value.tags.split(',').map(t => t.trim()).filter(t => t)
 
-  emit('save', {
-    ...form.value,
-    tags: tagsArray,
-    patient_id: crypto.randomUUID(), // Internal ID
-    professionalId: form.value.professional
-  })
-  emit('close')
+    await store.addClient({
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone,
+      dob: form.value.dob,
+      status: 'Active',
+      related: form.value.isLinked ? form.value.linkedPatientId : '',
+      professionalId: form.value.professional
+    })
+    
+    toast({
+      title: "Patient created successfully",
+      description: `${form.value.name} has been added to the system.`,
+      variant: "default",
+    })
+
+    emit('save') // Emit save event to trigger parent updates if needed
+    emit('close')
+  } catch (error) {
+    console.error(error)
+    toast({
+      title: "Error creating patient",
+      description: "There was a problem saving the patient. Please try again.",
+      variant: "destructive",
+    })
+  } finally {
+    isLoading.value = false
+  }
 }
 
 function handleOpenChange(val: boolean) {
@@ -257,7 +284,7 @@ function handleOpenChange(val: boolean) {
 
             <!-- Insurance Details -->
             <template v-if="form.hasInsurance">
-              <div class="md:col-span-1">
+              <div class="md:col-span-1 animate-in slide-in-from-top-2 fade-in duration-200">
                 <Label class="mb-1 block">Provider <span class="text-destructive">*</span></Label>
                 <Select v-model="form.insuranceProvider">
                   <SelectTrigger :class="{ 'border-destructive': errors.insuranceProvider }">
@@ -271,7 +298,7 @@ function handleOpenChange(val: boolean) {
                 </Select>
                 <p v-if="errors.insuranceProvider" class="mt-1 text-xs text-destructive">{{ errors.insuranceProvider }}</p>
               </div>
-              <div class="md:col-span-1">
+              <div class="md:col-span-1 animate-in slide-in-from-top-2 fade-in duration-200 delay-75">
                 <Label class="mb-1 block">Policy Number <span class="text-destructive">*</span></Label>
                 <Input 
                   v-model="form.policyNumber"
@@ -305,7 +332,7 @@ function handleOpenChange(val: boolean) {
               <Checkbox :checked="form.isLinked" @update:checked="(v: any) => form.isLinked = v as boolean" />
             </div>
 
-            <div v-if="form.isLinked" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div v-if="form.isLinked" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 animate-in slide-in-from-top-2 fade-in duration-200">
               <div>
                 <Label class="block mb-1 text-xs">Related Patient <span class="text-destructive">*</span></Label>
                 <Select v-model="form.linkedPatientId">
@@ -367,7 +394,10 @@ function handleOpenChange(val: boolean) {
            <AlertCircle class="w-3 h-3" /> Required fields
         </div>
         <Button variant="ghost" @click="emit('close')">Cancel</Button>
-        <Button @click="save">Create Patient</Button>
+        <Button @click="save" :disabled="isLoading">
+          <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+          {{ isLoading ? 'Creating...' : 'Create Patient' }}
+        </Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

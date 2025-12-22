@@ -45,13 +45,15 @@ const defaultColumns = [
   { id: 'id', label: 'ID', visible: true, order: 1 },
   { id: 'date', label: 'Date', visible: true, order: 2 },
   { id: 'patient', label: 'Patient', visible: true, order: 3 },
-  { id: 'type', label: 'Type', visible: true, order: 4 },
-  { id: 'paymentMode', label: 'Payment Mode', visible: true, order: 5 },
-  { id: 'amount', label: 'Amount', visible: true, order: 6 },
-  { id: 'clinic', label: 'Clinic %', visible: true, order: 7 },
-  { id: 'billable', label: 'Billable', visible: true, order: 8 },
-  { id: 'status', label: 'Status', visible: true, order: 9 },
-  { id: 'actions', label: 'Actions', visible: true, order: 10 }
+  { id: 'professional', label: 'Professional', visible: true, order: 4 },
+  { id: 'type', label: 'Type', visible: true, order: 5 },
+  { id: 'sessionStatus', label: 'Session Status', visible: true, order: 6 },
+  { id: 'paymentMode', label: 'Payment', visible: true, order: 7 },
+  { id: 'amount', label: 'Amount', visible: true, order: 8 },
+  { id: 'clinic', label: 'Clinic %', visible: true, order: 9 },
+  { id: 'billable', label: 'Billable', visible: false, order: 10 },
+  { id: 'status', label: 'Billing Status', visible: true, order: 11 },
+  { id: 'actions', label: 'Actions', visible: true, order: 12 }
 ]
 
 const columns = ref([...defaultColumns.map(c => ({...c}))])
@@ -75,8 +77,9 @@ function resetColumns() {
 
 
 // --- Mock Data: Sessions ---
-type SessionType = 'Online' | 'In-Person' | 'Group'
-type SessionStatus = 'Paid' | 'Pending'
+type SessionType = 'Online' | 'In-Person' | 'Group' | 'Individual' | 'Couples' | 'Child'
+type SessionStatus = 'Done' | 'Cancelled' | 'No Show' | 'Scheduled'
+type BillingStatus = 'Paid' | 'Pending'
 type PaymentMode = 'Credit Card' | 'Bank Transfer' | 'Cash' | 'Insurance' | 'Stripe'
 
 interface Session {
@@ -84,25 +87,28 @@ interface Session {
   date: string
   patient: string
   patientInitials: string
+  professional: string
   type: SessionType
+  sessionStatus: SessionStatus
   duration: number // minutes
   amount: number
-  status: SessionStatus
+  status: BillingStatus
   paymentMode?: PaymentMode
+  paymentDate?: string
 }
 
 const sessions = ref<Session[]>([
   // Current Month (Dec 2025)
-  { id: 'SES-201', date: '2025-12-02', patient: 'Sarah Johnson', patientInitials: 'SJ', type: 'Online', duration: 60, amount: 80, status: 'Paid', paymentMode: 'Stripe' },
-  { id: 'SES-202', date: '2025-12-05', patient: 'Michael Brown', patientInitials: 'MB', type: 'In-Person', duration: 50, amount: 100, status: 'Pending' },
-  { id: 'SES-203', date: '2025-12-08', patient: 'Emma Wilson', patientInitials: 'EW', type: 'Online', duration: 60, amount: 80, status: 'Paid', paymentMode: 'Credit Card' },
-  { id: 'SES-204', date: '2025-12-10', patient: 'Sarah Johnson', patientInitials: 'SJ', type: 'Group', duration: 90, amount: 40, status: 'Pending' },
-  { id: 'SES-205', date: '2025-12-12', patient: 'David Lee', patientInitials: 'DL', type: 'In-Person', duration: 50, amount: 100, status: 'Paid', paymentMode: 'Cash' },
-  { id: 'SES-206', date: '2025-12-15', patient: 'Michael Brown', patientInitials: 'MB', type: 'Online', duration: 60, amount: 80, status: 'Pending' },
+  { id: 'SES-201', date: '2025-12-02', patient: 'Sarah Johnson', patientInitials: 'SJ', professional: 'Dr. Ana Ruiz', type: 'Online', sessionStatus: 'Done', duration: 60, amount: 80, status: 'Paid', paymentMode: 'Stripe', paymentDate: '2025-12-02 14:30' },
+  { id: 'SES-202', date: '2025-12-05', patient: 'Michael Brown', patientInitials: 'MB', professional: 'Dr. Ana Ruiz', type: 'In-Person', sessionStatus: 'Done', duration: 50, amount: 100, status: 'Pending' },
+  { id: 'SES-203', date: '2025-12-08', patient: 'Emma Wilson', patientInitials: 'EW', professional: 'Dr. Marc Vidal', type: 'Couples', sessionStatus: 'Done', duration: 60, amount: 120, status: 'Paid', paymentMode: 'Credit Card', paymentDate: '2025-12-08 10:15' },
+  { id: 'SES-204', date: '2025-12-10', patient: 'Sarah Johnson', patientInitials: 'SJ', professional: 'Dr. Ana Ruiz', type: 'Group', sessionStatus: 'Done', duration: 90, amount: 40, status: 'Pending' },
+  { id: 'SES-205', date: '2025-12-12', patient: 'David Lee', patientInitials: 'DL', professional: 'Dr. Ana Ruiz', type: 'Child', sessionStatus: 'Done', duration: 50, amount: 100, status: 'Paid', paymentMode: 'Cash', paymentDate: '2025-12-12 17:00' },
+  { id: 'SES-206', date: '2025-12-15', patient: 'Michael Brown', patientInitials: 'MB', professional: 'Dr. Ana Ruiz', type: 'Online', sessionStatus: 'Cancelled', duration: 60, amount: 80, status: 'Pending' },
   
   // Previous Month (Nov 2025) - Should be filtered out by default
-  { id: 'SES-101', date: '2025-11-01', patient: 'Sarah Johnson', patientInitials: 'SJ', type: 'Online', duration: 60, amount: 80, status: 'Paid', paymentMode: 'Stripe' },
-  { id: 'SES-102', date: '2025-11-03', patient: 'Michael Brown', patientInitials: 'MB', type: 'In-Person', duration: 50, amount: 100, status: 'Pending' },
+  { id: 'SES-101', date: '2025-11-01', patient: 'Sarah Johnson', patientInitials: 'SJ', professional: 'Dr. Ana Ruiz', type: 'Online', sessionStatus: 'Done', duration: 60, amount: 80, status: 'Paid', paymentMode: 'Stripe', paymentDate: '2025-11-01 09:00' },
+  { id: 'SES-102', date: '2025-11-03', patient: 'Michael Brown', patientInitials: 'MB', professional: 'Dr. Marc Vidal', type: 'In-Person', sessionStatus: 'Done', duration: 50, amount: 100, status: 'Pending' },
 ])
 
 // --- Filters ---
@@ -122,8 +128,8 @@ const startDate = ref<DateValue | undefined>(firstDayObj)
 const endDate = ref<DateValue | undefined>(todayObj)
 
 const distinctPatients = computed(() => [...new Set(sessions.value.map(s => s.patient))])
-const sessionTypes: SessionType[] = ['Online', 'In-Person', 'Group']
-const statuses: SessionStatus[] = ['Paid', 'Pending']
+const sessionTypes: SessionType[] = ['Online', 'In-Person', 'Group', 'Individual', 'Couples', 'Child']
+const statuses: BillingStatus[] = ['Paid', 'Pending']
 
 const filteredSessions = computed(() => {
   const filtered = sessions.value.filter(session => {
@@ -808,15 +814,37 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
                       </div>
                   </template>
 
+                  <!-- Professional -->
+                  <template v-else-if="col.id === 'professional'">
+                     <span class="text-sm text-slate-700">{{ session.professional }}</span>
+                  </template>
+
                   <!-- Type -->
                   <template v-else-if="col.id === 'type'">
                      <Badge variant="outline" class="font-normal text-xs">{{ session.type }}</Badge>
                   </template>
+                  
+                  <!-- Session Status -->
+                  <template v-else-if="col.id === 'sessionStatus'">
+                     <div class="flex items-center gap-2">
+                        <CheckCircle v-if="session.sessionStatus === 'Done'" class="w-4 h-4 text-green-500" />
+                        <X v-else-if="session.sessionStatus === 'Cancelled'" class="w-4 h-4 text-red-500" />
+                        <Clock v-else-if="session.sessionStatus === 'Scheduled'" class="w-4 h-4 text-slate-400" />
+                        <span class="text-sm" :class="{
+                            'text-green-700': session.sessionStatus === 'Done',
+                            'text-red-700': session.sessionStatus === 'Cancelled',
+                            'text-muted-foreground': session.sessionStatus !== 'Done' && session.sessionStatus !== 'Cancelled'
+                        }">{{ session.sessionStatus }}</span>
+                     </div>
+                  </template>
 
-                  <!-- Payment Mode -->
+                  <!-- Payment -->
                   <template v-else-if="col.id === 'paymentMode'">
-                     <span v-if="session.paymentMode" class="text-slate-700">{{ session.paymentMode }}</span>
-                     <span v-else class="text-muted-foreground italic">-</span>
+                     <div class="flex flex-col">
+                         <span v-if="session.paymentMode" class="text-sm font-medium text-slate-900">{{ session.paymentMode }}</span>
+                         <span v-else class="text-muted-foreground italic text-xs">-</span>
+                         <span v-if="session.paymentDate" class="text-xs text-muted-foreground">{{ formatDate(session.paymentDate) }}</span>
+                     </div>
                   </template>
 
                   <!-- Amount -->
@@ -916,7 +944,7 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
                <!-- The current dynamic nature makes precise footer alignment hard without tracking column indices.
                     For now, let's just make it spans safely or hide it if it breaks layout.
                     Actually, let's try to infer if 'amount', 'clinic', 'billable' are visible. -->
-              <TableCell :colspan="visibleColumns.filter(c => c.order < 6).length" class="text-right py-4">Totals:</TableCell>
+              <TableCell :colspan="visibleColumns.filter(c => c.order < 8).length" class="text-right py-4">Totals:</TableCell>
               
               <!-- Amount -->
               <TableCell v-if="columns.find(c => c.id === 'amount')?.visible" class="text-right py-4">€{{ totalFilteredAmount.toLocaleString() }}</TableCell>
@@ -927,7 +955,7 @@ const totalBillable = computed(() => totalFilteredAmount.value - totalCommission
               <!-- Billable -->
               <TableCell v-if="columns.find(c => c.id === 'billable')?.visible" class="text-right py-4">€{{ totalBillable.toLocaleString() }}</TableCell>
               
-              <TableCell :colspan="Math.max(0, visibleColumns.length - visibleColumns.filter(c => c.order <= 8).length)"></TableCell>
+              <TableCell :colspan="Math.max(0, visibleColumns.length - visibleColumns.filter(c => c.order <= 10).length)"></TableCell>
             </TableRow>
           </TableBody>
         </Table>

@@ -3,6 +3,8 @@ import { ref, watch } from 'vue'
 import { X, Loader2, AlertCircle, ChevronDown } from 'lucide-vue-next'
 import { z } from 'zod'
 import Button from '@/components/ui/Button.vue'
+import { useToast } from '@/components/ui/toast/use-toast'
+import { useAppStore } from '@/stores/app'
 
 // --- Props & Emits ---
 const props = defineProps<{
@@ -14,6 +16,11 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'created', patientId: string): void
 }>()
+
+const store = useAppStore()
+const { toast } = useToast()
+
+
 
 // --- Zod Schema & Types ---
 
@@ -255,8 +262,6 @@ const timeZones = [
   { id: "Europe/London", label: "Europe/London" },
 ]
 
-
-
 const insuranceProviders = [
   'Aetna', 'Blue Cross', 'Cigna', 'UnitedHealthcare', 'Other'
 ]
@@ -313,30 +318,47 @@ const validate = () => {
   }
 }
 
-const createPatient = async (values: AddPatientFormValues): Promise<string> => {
-  console.log('Creating patient with values:', values)
-  await new Promise(resolve => setTimeout(resolve, 800)) // Simulate API delay
-  return 'mock-patient-id-456'
-}
-
 const handleSubmit = async () => {
   if (!validate()) return
 
   isLoading.value = true
   try {
-    const patientId = await createPatient(form.value)
-    emit('created', patientId)
-    if (props.onCreated) {
-      props.onCreated(patientId)
+    const patientId = await store.addClient({
+        name: `${form.value.firstName} ${form.value.lastName}`,
+        email: form.value.email || '',
+        phone: form.value.phone || '',
+        dob: form.value.dateOfBirth || '',
+        status: form.value.patientStatus === 'active' ? 'Active' : 'Inactive',
+        related: form.value.isRelatedToPatient ? (form.value.relatedPatientId || '') : '',
+        professionalId: form.value.assignedDoctorId
+    })
+
+    if (patientId) {
+        emit('created', patientId)
+        if (props.onCreated) {
+            props.onCreated(patientId)
+        }
     }
+    
+    toast({
+      title: "Patient added successfully",
+      description: `${form.value.firstName} ${form.value.lastName} has been added to the organization.`,
+      variant: "default"
+    })
+
     emit('update:modelValue', false)
   } catch (error) {
     console.error('Failed to create patient:', error)
-    alert('Could not create patient. Please try again.')
+    toast({
+      title: "Error creating patient",
+      description: "Could not create patient. Please try again.",
+      variant: "destructive"
+    })
   } finally {
     isLoading.value = false
   }
 }
+
 
 const toggleSelection = (array: string[], value: string) => {
   const index = array.indexOf(value)

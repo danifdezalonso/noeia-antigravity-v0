@@ -60,12 +60,15 @@ function toggleDoctorExpansion(docId: string) {
 // Table Columns Customization
 const defaultColumns = [
   { id: 'id', label: 'Invoice ID', visible: true, order: 0 },
-  { id: 'patient', label: 'Patient', visible: true, order: 1 },
-  { id: 'doctor', label: 'Doctor', visible: true, order: 2 },
-  { id: 'date', label: 'Date', visible: true, order: 3 },
-  { id: 'amount', label: 'Amount', visible: true, order: 4 },
-  { id: 'status', label: 'Status', visible: true, order: 5 },
-  { id: 'actions', label: 'Actions', visible: true, order: 6 }
+  { id: 'date', label: 'Date', visible: true, order: 1 },
+  { id: 'patient', label: 'Patient', visible: true, order: 2 },
+  { id: 'doctor', label: 'Professional', visible: true, order: 3 },
+  { id: 'type', label: 'Type', visible: true, order: 4 },
+  { id: 'sessionStatus', label: 'Session Status', visible: true, order: 5 },
+  { id: 'paymentMode', label: 'Payment', visible: true, order: 6 },
+  { id: 'amount', label: 'Amount', visible: true, order: 7 },
+  { id: 'status', label: 'Billing Status', visible: true, order: 8 },
+  { id: 'actions', label: 'Actions', visible: true, order: 9 }
 ]
 
 const columns = ref([...defaultColumns.map(c => ({...c}))])
@@ -90,25 +93,25 @@ function resetColumns() {
 // Mock Data
 const baseInvoices = ref([
   // Dec 2025 (Current Month)
-  { id: 'INV-2501', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-12-20' },
-  { id: 'INV-2502', patient: 'Michael Brown', patientInitials: 'MB', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-19' },
-  { id: 'INV-2503', patient: 'Emma Wilson', patientInitials: 'EW', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 150, status: 'Paid', date: '2025-12-18' },
-  { id: 'INV-2504', patient: 'David Lee', patientInitials: 'DL', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 110, status: 'Overdue', date: '2025-12-05' },
-  { id: 'INV-2505', patient: 'Laura Pérez', patientInitials: 'LP', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-12-15' },
-  { id: 'INV-2506', patient: 'Hugo García', patientInitials: 'HG', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-14' },
-  { id: 'INV-2507', patient: 'Sofia Martinez', patientInitials: 'SM', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 135, status: 'Paid', date: '2025-12-12' },
-  { id: 'INV-2508', patient: 'James Chen', patientInitials: 'JC', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 200, status: 'Pending', date: '2025-12-10' },
-  { id: 'INV-2509', patient: 'Emily Davis', patientInitials: 'ED', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Overdue', date: '2025-12-01' },
-  { id: 'INV-2510', patient: 'Daniel Kim', patientInitials: 'DK', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 95, status: 'Paid', date: '2025-12-08' },
+  { id: 'INV-2501', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', type: 'Online', sessionStatus: 'Done', amount: 120, status: 'Paid', paymentMode: 'Stripe', paymentDate: '2025-12-20', date: '2025-12-20' },
+  { id: 'INV-2502', patient: 'Michael Brown', patientInitials: 'MB', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', type: 'In-Person', sessionStatus: 'Done', amount: 90, status: 'Pending', date: '2025-12-19' },
+  { id: 'INV-2503', patient: 'Emma Wilson', patientInitials: 'EW', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', type: 'Couples', sessionStatus: 'Done', amount: 150, status: 'Paid', paymentMode: 'Credit Card', paymentDate: '2025-12-18', date: '2025-12-18' },
+  { id: 'INV-2504', patient: 'David Lee', patientInitials: 'DL', doctor: 'Dr. Omar López', doctorInitials: 'OL', type: 'Group', sessionStatus: 'Done', amount: 110, status: 'Overdue', date: '2025-12-05' },
+  { id: 'INV-2505', patient: 'Laura Pérez', patientInitials: 'LP', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', type: 'Online', sessionStatus: 'Done', amount: 120, status: 'Paid', paymentMode: 'Bank Transfer', paymentDate: '2025-12-15', date: '2025-12-15' },
+  { id: 'INV-2506', patient: 'Hugo García', patientInitials: 'HG', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', type: 'Child', sessionStatus: 'Cancelled', amount: 90, status: 'Pending', date: '2025-12-14' },
+  { id: 'INV-2507', patient: 'Sofia Martinez', patientInitials: 'SM', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', type: 'Individual', sessionStatus: 'Done', amount: 135, status: 'Paid', paymentMode: 'Cash', paymentDate: '2025-12-12', date: '2025-12-12' },
+  { id: 'INV-2508', patient: 'James Chen', patientInitials: 'JC', doctor: 'Dr. Omar López', doctorInitials: 'OL', type: 'Online', sessionStatus: 'No Show', amount: 200, status: 'Pending', date: '2025-12-10' },
+  { id: 'INV-2509', patient: 'Emily Davis', patientInitials: 'ED', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', type: 'In-Person', sessionStatus: 'Done', amount: 120, status: 'Overdue', date: '2025-12-01' },
+  { id: 'INV-2510', patient: 'Daniel Kim', patientInitials: 'DK', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', type: 'Online', sessionStatus: 'Done', amount: 95, status: 'Paid', paymentMode: 'Stripe', paymentDate: '2025-12-08', date: '2025-12-08' },
   
   // Nov 2025 (Previous Month)
-  { id: 'INV-2490', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Paid', date: '2025-11-28' },
-  { id: 'INV-2491', patient: 'Lucas Silva', patientInitials: 'LS', doctor: 'Dr. Omar López', doctorInitials: 'OL', amount: 150, status: 'Paid', date: '2025-11-25' },
-  { id: 'INV-2492', patient: 'Maria Garcia', patientInitials: 'MG', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', amount: 110, status: 'Overdue', date: '2025-11-15' },
+  { id: 'INV-2490', patient: 'Sarah Johnson', patientInitials: 'SJ', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', type: 'Online', sessionStatus: 'Done', amount: 120, status: 'Paid', paymentMode: 'Stripe', paymentDate: '2025-11-28', date: '2025-11-28' },
+  { id: 'INV-2491', patient: 'Lucas Silva', patientInitials: 'LS', doctor: 'Dr. Omar López', doctorInitials: 'OL', type: 'Group', sessionStatus: 'Done', amount: 150, status: 'Paid', paymentMode: 'Cash', paymentDate: '2025-11-25', date: '2025-11-25' },
+  { id: 'INV-2492', patient: 'Maria Garcia', patientInitials: 'MG', doctor: 'Dr. Júlia Serra', doctorInitials: 'JS', type: 'In-Person', sessionStatus: 'Done', amount: 110, status: 'Overdue', date: '2025-11-15' },
   
   // Future / Pending
-  { id: 'INV-2511', patient: 'Thomas Anderson', patientInitials: 'TA', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', amount: 90, status: 'Pending', date: '2025-12-22' },
-  { id: 'INV-2512', patient: 'Olivia Wilson', patientInitials: 'OW', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', amount: 120, status: 'Pending', date: '2025-12-24' },
+  { id: 'INV-2511', patient: 'Thomas Anderson', patientInitials: 'TA', doctor: 'Dr. Marc Vidal', doctorInitials: 'MV', type: 'Online', sessionStatus: 'Scheduled', amount: 90, status: 'Pending', date: '2025-12-22' },
+  { id: 'INV-2512', patient: 'Olivia Wilson', patientInitials: 'OW', doctor: 'Dr. Ana Ruiz', doctorInitials: 'AR', type: 'Couples', sessionStatus: 'Scheduled', amount: 120, status: 'Pending', date: '2025-12-24' },
 ])
 
 const invoices = computed(() => {
@@ -578,6 +581,8 @@ function handleCreateInvoice(newInvoice: any) {
     doctorInitials: newInvoice.doctor?.split(' ').map((n:any)=>n[0]).join('') || 'DR',
     amount: newInvoice.amount,
     status: 'Pending',
+    type: 'Online', 
+    sessionStatus: 'Scheduled',
     date: (new Date().toISOString().split('T')[0]) as string
   })
   isCreateInvoiceModalOpen.value = false
@@ -1147,6 +1152,34 @@ function handleSaveEvent() {
                       </Avatar>
                       <span class="text-sm text-muted-foreground">{{ invoice.doctor }}</span>
                    </div>
+                </template>
+
+                <!-- Type -->
+                <template v-else-if="col.id === 'type'">
+                   <Badge variant="outline" class="font-normal text-xs">{{ invoice.type }}</Badge>
+                </template>
+
+                <!-- Session Status -->
+                <template v-else-if="col.id === 'sessionStatus'">
+                    <div class="flex items-center gap-2">
+                    <CheckCircle v-if="invoice.sessionStatus === 'Done'" class="w-4 h-4 text-green-500" />
+                    <X v-else-if="invoice.sessionStatus === 'Cancelled'" class="w-4 h-4 text-red-500" />
+                    <Clock v-else-if="invoice.sessionStatus === 'Scheduled'" class="w-4 h-4 text-slate-400" />
+                    <span class="text-sm" :class="{
+                        'text-green-700': invoice.sessionStatus === 'Done',
+                        'text-red-700': invoice.sessionStatus === 'Cancelled',
+                        'text-muted-foreground': invoice.sessionStatus !== 'Done' && invoice.sessionStatus !== 'Cancelled'
+                    }">{{ invoice.sessionStatus }}</span>
+                    </div>
+                </template>
+
+                <!-- Payment Mode -->
+                <template v-else-if="col.id === 'paymentMode'">
+                    <div class="flex flex-col">
+                        <span v-if="invoice.paymentMode" class="text-sm font-medium text-slate-900">{{ invoice.paymentMode }}</span>
+                        <span v-else class="text-muted-foreground italic text-xs">-</span>
+                        <span v-if="invoice.paymentDate" class="text-xs text-muted-foreground">{{ formatDate(invoice.paymentDate) }}</span>
+                    </div>
                 </template>
 
                 <!-- Date -->
