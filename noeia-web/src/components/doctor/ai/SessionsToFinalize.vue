@@ -36,7 +36,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import Button from '@/components/ui/Button.vue'
+import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
 import SessionContextTab from './tabs/SessionContextTab.vue'
 import SessionNotesTab from './tabs/SessionNotesTab.vue'
 import ProTrialModal from '@/components/doctor/modals/ProTrialModal.vue'
@@ -145,6 +146,9 @@ const titleInput = ref<HTMLInputElement | null>(null)
 const editingTabId = ref<string | null>(null)
 const editingTabValue = ref('')
 const tabInput = ref<HTMLInputElement | null>(null)
+
+// Finish Session Modal State
+const isFinishSessionModalOpen = ref(false)
 
 // --- Actions ---
 
@@ -635,25 +639,25 @@ const groupedSessions = computed(() => {
                     </div>
                 </div>
 
-                <!-- Right Side: Split Button + Timer (Vertical Stack) -->
-                <div class="flex flex-col items-end gap-1.5 pt-0.5">
-                        <!-- Primary Split Action -->
-                    <div class="flex items-center shadow-sm rounded-lg overflow-hidden">
-                        <button 
+                <!-- Right Side: Action Buttons (Horizontal) -->
+                <div class="flex items-center gap-3">
+                    <!-- Transcribe Button (Secondary with Dropdown) -->
+                    <ButtonGroup variant="outline">
+                        <Button 
                             @click="startTranscription"
                             :disabled="isTranscribing"
-                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-bold flex items-center gap-2 transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
+                            variant="outline"
                         >
-                            <div v-if="isTranscribing" class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            <Ear v-else class="w-4 h-4" />
+                            <div v-if="isTranscribing" class="animate-spin w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full mr-2"></div>
+                            <Ear v-else class="w-4 h-4 mr-2" />
                             <span>{{ isTranscribing ? 'Listening...' : 'Transcribe' }}</span>
-                        </button>
+                        </Button>
                         
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
-                                <button class="bg-green-600 hover:bg-green-700 text-white px-2 py-2 border-l border-green-700 transition-colors h-full flex items-center justify-center">
+                                <Button variant="outline">
                                    <ChevronDown class="w-4 h-4" />
-                                </button>
+                                </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="w-56">
                                  <DropdownMenuItem class="flex items-center justify-between cursor-pointer" @click="startTranscription">
@@ -673,29 +677,16 @@ const groupedSessions = computed(() => {
                                  </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    </div>
-
-                    <!-- Timer Row (Small) -->
-                    <div class="flex items-center gap-3 text-slate-500 mt-1">
-                            <!-- Timer -->
-                        <div class="flex items-center gap-1.5">
-                            <Clock class="w-3.5 h-3.5" />
-                            <span class="text-xs font-medium font-mono">00:00</span>
-                        </div>
-                        
-                            <!-- Visualizer -->
-                        <div class="flex items-center gap-1">
-                                <Mic class="w-3.5 h-3.5" />
-                                <div class="flex gap-0.5 h-2.5 items-center px-1">
-                                <div class="w-1 bg-green-500 h-1 rounded-full"></div>
-                                <div class="w-1 bg-green-500 h-2 rounded-full"></div>
-                                <div class="w-1 bg-green-500 h-1.5 rounded-full"></div>
-                                <div class="w-1 bg-green-500 h-2.5 rounded-full"></div>
-                                <div class="w-1 bg-green-500 h-1 rounded-full"></div>
-                            </div>
-                                <ChevronDown class="w-3 h-3 text-slate-300" />
-                        </div>
-                    </div>
+                    </ButtonGroup>
+                    
+                    <!-- Finish Session Button (Primary) -->
+                    <Button 
+                        @click="isFinishSessionModalOpen = true"
+                        class="shadow-sm"
+                    >
+                        <Check class="w-4 h-4 mr-2" />
+                        <span>Finish Session</span>
+                    </Button>
                 </div>
             </div>
 
@@ -896,7 +887,36 @@ const groupedSessions = computed(() => {
         </DialogHeader>
         <DialogFooter class="flex gap-3 sm:justify-end">
            <Button variant="secondary" @click="isDeleteDialogOpen = false">Cancel</Button>
-           <Button variant="danger" @click="confirmDelete">Delete session</Button>
+           <Button variant="destructive" @click="confirmDelete">Delete session</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    
+    <!-- Finish Session Modal -->
+    <Dialog v-model:open="isFinishSessionModalOpen">
+      <DialogContent class="sm:max-w-[600px] p-6">
+        <DialogHeader class="mb-4">
+          <DialogTitle class="text-xl font-bold text-slate-900">Finish Session</DialogTitle>
+          <DialogDescription class="text-slate-600">
+            Review and complete the session details before finalizing.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div class="space-y-4">
+          <p class="text-sm text-slate-600">
+            Session completion features will be added here. This includes:
+          </p>
+          <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2">
+            <li>Session summary review</li>
+            <li>Billing information</li>
+            <li>Follow-up tasks</li>
+            <li>Documentation completion</li>
+          </ul>
+        </div>
+        
+        <DialogFooter class="flex gap-3 sm:justify-end mt-6">
+          <Button variant="secondary" @click="isFinishSessionModalOpen = false">Cancel</Button>
+          <Button class="bg-blue-500 hover:bg-blue-600" @click="isFinishSessionModalOpen = false">Complete Session</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
