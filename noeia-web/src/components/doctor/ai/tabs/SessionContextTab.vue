@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Mic, RotateCcw, RotateCw, Copy, ChevronDown, CheckSquare, Paperclip, MoveRight, User } from 'lucide-vue-next'
+import { Mic, RotateCcw, RotateCw, ChevronDown, Paperclip, User } from 'lucide-vue-next'
 import Button from '@/components/ui/Button.vue'
 
 defineProps<{ modelValue: string }>()

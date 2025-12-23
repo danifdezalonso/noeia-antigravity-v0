@@ -5,15 +5,15 @@ import {
   DialogContent, 
 } from '@/components/ui/dialog'
 import Button from '@/components/ui/Button.vue'
-import { Check, Zap, Sparkles, FileText, Timer } from 'lucide-vue-next'
-import { Switch } from '@/components/ui/switch'
+import { Zap, Sparkles, FileText, Timer } from 'lucide-vue-next'
+
 
 interface Props {
   open: boolean
   daysRemaining?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   daysRemaining: 14
 })
 
@@ -21,9 +21,6 @@ const emit = defineEmits(['update:open'])
 
 const isYearly = ref(true)
 
-function close() {
-  emit('update:open', false)
-}
 </script>
 
 <template>

@@ -10,9 +10,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
@@ -32,7 +30,6 @@ import {
   MoreHorizontal,
   PenTool,
   LayoutTemplate,
-  Copy,
   User,
   Paperclip
 } from 'lucide-vue-next'
@@ -211,7 +208,7 @@ function toggleRecording() {
     <!-- Main Content Area -->
     <div class="flex-1 overflow-y-auto relative">
         <!-- Empty State (Start Session) -->
-        <div v-if="!hasStarted" class="h-full flex flex-col items-center justify-center p-8 text-center pb-32">
+        <div v-if="!hasStarted" class="h-full flex flex-col items-center justify-center p-8 text-center pb-4">
              <!-- Arrow SVG (Stylized) -->
              <div class="absolute top-20 right-32 hidden xl:block opacity-40">
                 <svg width="120" height="120" viewBox="0 0 100 100" fill="none" stroke="currentColor" class="text-slate-400 -rotate-12">

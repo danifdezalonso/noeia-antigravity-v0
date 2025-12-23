@@ -551,7 +551,7 @@ const groupedSessions = computed(() => {
                 
                 <button 
                     @click="addNewTab"
-                    class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-200 text-slate-500 transition-colors mb-1"
+                    class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-200 text-slate-700 transition-colors mb-1"
                 >
                     <Plus class="w-4 h-4" />
                 </button>
