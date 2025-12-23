@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cn } from '@/lib/utils'
-import { buttonGroupVariants, type ButtonGroupVariants } from '.'
+import { buttonGroupVariants } from '.'
 
-interface Props extends ButtonGroupVariants {
+interface Props {
+  variant?: 'default' | 'outline'
   class?: string
 }
 

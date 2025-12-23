@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, Command as CommandIcon, ArrowUp, Zap, Languages, Plus, Pencil, X } from 'lucide-vue-next'
+import { User, Trash2, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, Command as CommandIcon, ArrowUp, Zap, Languages, Plus, Pencil, X } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,7 @@ import { ButtonGroup } from '@/components/ui/button-group'
 import SessionContextTab from './tabs/SessionContextTab.vue'
 import SessionNotesTab from './tabs/SessionNotesTab.vue'
 import ProTrialModal from '@/components/doctor/modals/ProTrialModal.vue'
+import FinishSessionModal from '@/components/doctor/modals/FinishSessionModal.vue'
 
 // --- Mock Data Generation ---
 // Helper to get dates relative to today
@@ -893,32 +894,9 @@ const groupedSessions = computed(() => {
     </Dialog>
     
     <!-- Finish Session Modal -->
-    <Dialog v-model:open="isFinishSessionModalOpen">
-      <DialogContent class="sm:max-w-[600px] p-6">
-        <DialogHeader class="mb-4">
-          <DialogTitle class="text-xl font-bold text-slate-900">Finish Session</DialogTitle>
-          <DialogDescription class="text-slate-600">
-            Review and complete the session details before finalizing.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div class="space-y-4">
-          <p class="text-sm text-slate-600">
-            Session completion features will be added here. This includes:
-          </p>
-          <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 ml-2">
-            <li>Session summary review</li>
-            <li>Billing information</li>
-            <li>Follow-up tasks</li>
-            <li>Documentation completion</li>
-          </ul>
-        </div>
-        
-        <DialogFooter class="flex gap-3 sm:justify-end mt-6">
-          <Button variant="secondary" @click="isFinishSessionModalOpen = false">Cancel</Button>
-          <Button class="bg-blue-500 hover:bg-blue-600" @click="isFinishSessionModalOpen = false">Complete Session</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <FinishSessionModal 
+      :is-open="isFinishSessionModalOpen" 
+      @close="isFinishSessionModalOpen = false" 
+    />
   </div>
 </template>
