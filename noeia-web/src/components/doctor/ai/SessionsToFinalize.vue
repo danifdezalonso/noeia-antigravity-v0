@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, RotateCw, Command as CommandIcon, ArrowUp, Zap, Languages, Plus } from 'lucide-vue-next'
+import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, RotateCw, Command as CommandIcon, ArrowUp, Zap, Languages, Plus, Pencil, X } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
@@ -103,9 +103,13 @@ const pastSessions = ref([
 const sidebarTab = ref<'Schedule' | 'Past'>('Schedule')
 const selectedSessionId = ref<string | null>(scheduledSessions.value[0]?.id || null)
 const activeMainTab = ref<string>('Context')
-const tabs = ref<{id: string, label: string, icon: any}[]>([
-    { id: 'Context', label: 'Context', icon: LayoutList },
-    { id: 'Notes', label: 'Audit C', icon: PenLine }
+
+// Get current date in format like "Dec 23"
+const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+const tabs = ref<{id: string, label: string, icon: any, editable?: boolean}[]>([
+    { id: 'Context', label: 'Context', icon: LayoutList, editable: false },
+    { id: 'Notes', label: `Session ${currentDate}`, icon: PenLine, editable: false }
 ])
 const isDeleteDialogOpen = ref(false)
 const inputLanguage = ref('English')
@@ -137,6 +141,11 @@ const isEditingTitle = ref(false)
 const editingTitleValue = ref('')
 const titleInput = ref<HTMLInputElement | null>(null)
 
+// Tab Editing State
+const editingTabId = ref<string | null>(null)
+const editingTabValue = ref('')
+const tabInput = ref<HTMLInputElement | null>(null)
+
 // --- Actions ---
 
 function startTranscription() {
@@ -153,14 +162,65 @@ function startTranscription() {
 }
 
 function addNewTab() {
-    // For demo purposes, we will just add a generic "New Note" tab
-    const newId = `note-${tabs.value.length + 1}`
+    const newId = `note-${Date.now()}`
+    const newDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     tabs.value.push({
         id: newId,
-        label: 'New Note',
-        icon: PenLine
+        label: `New Note ${newDate}`,
+        icon: PenLine,
+        editable: true
     })
     activeMainTab.value = newId
+}
+
+function startEditingTab(tabId: string) {
+    const tab = tabs.value.find(t => t.id === tabId)
+    if (tab && tab.editable) {
+        editingTabId.value = tabId
+        editingTabValue.value = tab.label
+        setTimeout(() => {
+            tabInput.value?.focus()
+            tabInput.value?.select() // Select all text
+        }, 0)
+    }
+}
+
+function saveTabName() {
+    if (editingTabId.value && editingTabValue.value.trim()) {
+        const tab = tabs.value.find(t => t.id === editingTabId.value)
+        if (tab) {
+            tab.label = editingTabValue.value.trim()
+        }
+    }
+    editingTabId.value = null
+    editingTabValue.value = ''
+}
+
+function cancelTabEdit() {
+    editingTabId.value = null
+    editingTabValue.value = ''
+}
+
+function closeTab(tabId: string) {
+    const tabIndex = tabs.value.findIndex(t => t.id === tabId)
+    if (tabIndex === -1) return
+    
+    // Don't allow closing Context or Notes tabs
+    const tab = tabs.value[tabIndex]
+    if (!tab || tab.id === 'Context' || tab.id === 'Notes') return
+    
+    // If closing the active tab, switch to another tab
+    if (activeMainTab.value === tabId) {
+        // Switch to the previous tab, or the next one if it's the first
+        const newIndex = tabIndex > 0 ? tabIndex - 1 : Math.min(tabIndex + 1, tabs.value.length - 2)
+        const newTab = tabs.value[newIndex]
+        if (newTab) {
+            activeMainTab.value = newTab.id
+        }
+    }
+    
+    // Remove the tab
+    tabs.value.splice(tabIndex, 1)
 }
 
 function handleAiQuery() {
@@ -423,9 +483,6 @@ const groupedSessions = computed(() => {
                 <div class="flex flex-col gap-1.5">
                     <!-- Title Row -->
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 bg-white">
-                             <RotateCw class="w-4 h-4" />
-                        </div>
                         
                         <!-- Inline Editing Title / Patient Search -->
                         <div v-if="isEditingTitle" class="flex items-center relative">
@@ -491,7 +548,7 @@ const groupedSessions = computed(() => {
                     </div>
 
                     <!-- Meta Row -->
-                    <div class="flex items-center gap-4 text-sm pl-11">
+                    <div class="flex items-center gap-4 text-sm">
                         <!-- Date Popover -->
                         <Popover v-model:open="isDateOpen">
                             <PopoverTrigger as-child>
@@ -645,16 +702,59 @@ const groupedSessions = computed(() => {
 
             <!-- Browser Tabs -->
             <div class="flex items-end gap-2 px-2 mt-6">
-                 <button
+                 <div
                     v-for="tab in tabs"
                     :key="tab.id"
-                    @click="activeMainTab = tab.id"
-                    class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-t-xl transition-all border-t border-x border-b-0 relative top-[1px] z-10"
-                    :class="activeMainTab === tab.id ? 'bg-white border-slate-200 text-slate-900 border-b-white' : 'bg-transparent border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'"
-                >
-                    <component :is="tab.icon" class="w-4 h-4" :class="tab.id === 'Context' ? 'text-rose-500' : 'text-slate-500'" />
-                    {{ tab.label }}
-                </button>
+                    class="relative group"
+                 >
+                    <!-- Editable Tab (when editing) -->
+                    <div
+                       v-if="editingTabId === tab.id"
+                       class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-t-xl border-t border-x border-b-0 relative top-[1px] z-10 bg-white border-slate-200"
+                    >
+                       <input
+                          ref="tabInput"
+                          v-model="editingTabValue"
+                          @blur="saveTabName"
+                          @keyup.enter="saveTabName"
+                          @keyup.esc="cancelTabEdit"
+                          class="bg-transparent border-none outline-none text-slate-900 min-w-[100px]"
+                       />
+                    </div>
+                    
+                    <!-- Normal Tab (when not editing) -->
+                    <button
+                       v-else
+                       @click="activeMainTab = tab.id"
+                       class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-t-xl transition-all border-t border-x border-b-0 relative top-[1px] z-10 min-w-fit"
+                       :class="activeMainTab === tab.id ? 'bg-white border-slate-200 text-slate-900 border-b-white' : 'bg-transparent border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100/50'"
+                    >
+                        <!-- Show icon only for non-editable tabs -->
+                        <component v-if="!tab.editable" :is="tab.icon" class="w-4 h-4" :class="tab.id === 'Context' ? 'text-rose-500' : 'text-slate-500'" />
+                        
+                        <span>{{ tab.label }}</span>
+                        
+                        <!-- Pencil icon for editable tabs -->
+                        <button
+                           v-if="tab.editable"
+                           @click.stop="startEditingTab(tab.id)"
+                           class="p-0.5 hover:bg-slate-200 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                           title="Edit tab name"
+                        >
+                           <Pencil class="w-3 h-3 text-slate-400" />
+                        </button>
+                        
+                        <!-- X button for editable tabs -->
+                        <button
+                           v-if="tab.editable"
+                           @click.stop="closeTab(tab.id)"
+                           class="ml-1 p-0.5 hover:bg-slate-200 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                           title="Close tab"
+                        >
+                           <X class="w-3 h-3 text-slate-500" />
+                        </button>
+                    </button>
+                 </div>
                 
                 <button 
                     @click="addNewTab"
