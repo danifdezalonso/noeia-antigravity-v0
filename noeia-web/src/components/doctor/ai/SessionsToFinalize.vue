@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, RotateCw, Command as CommandIcon, ArrowUp, Zap, Languages, Plus, Pencil, X } from 'lucide-vue-next'
+import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, Command as CommandIcon, ArrowUp, Zap, Languages, Plus, Pencil, X } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
