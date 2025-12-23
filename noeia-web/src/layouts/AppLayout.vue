@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, provide } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 
@@ -51,7 +51,10 @@ function openAddPatientModal(callback?: (id: string) => void) {
   isAddPatientModalOpen.value = true
 }
 
-import { provide } from 'vue'
+const isFullWidth = computed(() => {
+  return ['doctor-ai', 'doctor-messages', 'client-messages', 'org-messages'].includes(route.name as string)
+})
+
 provide('openAddDoctorModal', openAddDoctorModal)
 provide('openAddPatientModal', openAddPatientModal)
 
@@ -155,8 +158,11 @@ onMounted(() => {
           </header>
 
           <!-- Main Content -->
-          <main class="flex-1 overflow-y-auto bg-background p-4 md:p-8">
-            <div class="max-w-7xl mx-auto">
+          <main 
+            class="flex-1 overflow-y-auto bg-background transition-all"
+            :class="isFullWidth ? 'p-0' : 'p-4 md:p-8'"
+          >
+            <div :class="isFullWidth ? 'h-full' : 'max-w-7xl mx-auto'">
               <slot />
             </div>
           </main>
