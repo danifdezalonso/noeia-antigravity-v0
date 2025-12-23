@@ -91,14 +91,14 @@ function isActive(path: string) {
 
 <template>
   <Sidebar collapsible="icon">
-    <SidebarHeader class="border-b border-sidebar-border h-14 flex items-center px-4">
+    <SidebarHeader class="border-b border-sidebar-border h-16 flex items-center px-4">
       <div class="flex items-center gap-2 font-bold text-lg text-sidebar-foreground">
-        <div class="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center">
+        <div class="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center shrink-0">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <span class="truncate">Noeia</span>
+        <span class="truncate group-data-[collapsible=icon]:hidden">Noeia</span>
       </div>
     </SidebarHeader>
     <SidebarContent>
@@ -122,11 +122,11 @@ function isActive(path: string) {
         </SidebarGroupContent>
       </SidebarGroup>
     </SidebarContent>
-    <SidebarFooter class="p-4 border-t border-sidebar-border">
-      <div class="bg-primary/10 rounded-xl p-4 border border-primary/20">
-        <h4 class="text-sm font-semibold text-primary mb-1">Pro Plan</h4>
-        <p class="text-xs text-muted-foreground mb-3">12 days left.</p>
-        <Button size="sm" class="w-full">Upgrade</Button>
+    <SidebarFooter class="p-4 border-t border-sidebar-border group-data-[collapsible=icon]:hidden">
+      <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200">
+        <h4 class="text-sm font-bold text-purple-900 mb-1">Pro Plan</h4>
+        <p class="text-xs text-purple-700 mb-3">12 days left.</p>
+        <Button size="sm" class="w-full bg-purple-600 hover:bg-purple-700 text-white">Upgrade</Button>
       </div>
     </SidebarFooter>
     <SidebarRail />

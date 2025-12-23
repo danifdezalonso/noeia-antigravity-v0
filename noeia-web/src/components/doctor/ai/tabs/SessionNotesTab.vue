@@ -19,6 +19,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import Button from '@/components/ui/Button.vue'
 import { 
   Mic, 
@@ -37,7 +42,16 @@ import {
 const notes = ref('')
 const isRecording = ref(false)
 const selectedTemplate = ref('Standard GP Consultation Note')
-const hasStarted = ref(false) // Toggle between empty state and editor
+const hasStarted = ref(true) // Toggle between empty state and editor
+
+// Custom Settings State
+const showCustomPanel = ref(false)
+const scribeMode = ref('Standard') // 'Standard' or 'Extended'
+const voiceOption = ref('Custom')
+const detailLevel = ref(75) // 0-100
+const useBulletPoints = ref(true)
+const useQuotes = ref(false)
+const useAbbreviations = ref(true)
 
 function toggleRecording() {
   isRecording.value = !isRecording.value
@@ -72,11 +86,139 @@ function toggleRecording() {
         </Select>
       </div>
 
-      <!-- Custom Button -->
-      <Button variant="outline" class="gap-2 h-10 text-slate-700 border-slate-200 hover:bg-slate-50">
-         <PenTool class="w-4 h-4" />
-         Custom
-      </Button>
+      <!-- Custom Button with Popover -->
+      <Popover v-model:open="showCustomPanel">
+         <PopoverTrigger as-child>
+            <Button 
+               variant="outline" 
+               class="gap-2 h-10 text-slate-700 border-slate-200 hover:bg-slate-50"
+               :class="{'bg-slate-100': showCustomPanel}"
+            >
+               <PenTool class="w-4 h-4" />
+               Custom
+            </Button>
+         </PopoverTrigger>
+         <PopoverContent class="w-96 p-6" align="start">
+            <!-- Scribe Section -->
+            <div class="mb-6">
+               <div class="flex items-center gap-2 mb-3">
+                  <h3 class="text-sm font-semibold text-slate-900">Scribe</h3>
+                  <button class="w-4 h-4 rounded-full border border-slate-300 flex items-center justify-center text-slate-500 text-xs">
+                     ?
+                  </button>
+               </div>
+               
+               <div class="grid grid-cols-2 gap-3">
+                  <!-- Standard Option -->
+                  <button 
+                     @click="scribeMode = 'Standard'"
+                     class="p-3 rounded-lg border-2 text-left transition-all"
+                     :class="scribeMode === 'Standard' ? 'border-slate-900 bg-white' : 'border-slate-200 bg-white hover:border-slate-300'"
+                  >
+                     <div class="flex items-center gap-2 mb-1">
+                        <PenTool class="w-3.5 h-3.5 text-slate-700" />
+                        <span class="font-semibold text-xs">Standard</span>
+                     </div>
+                     <p class="text-[10px] text-slate-500 leading-tight">A simple writer - good for most sessions.</p>
+                  </button>
+                  
+                  <!-- Extended Option -->
+                  <button 
+                     @click="scribeMode = 'Extended'"
+                     class="p-3 rounded-lg border-2 text-left transition-all"
+                     :class="scribeMode === 'Extended' ? 'border-slate-900 bg-white' : 'border-slate-200 bg-white hover:border-slate-300'"
+                  >
+                     <div class="flex items-center gap-2 mb-1">
+                        <PenTool class="w-3.5 h-3.5 text-slate-700" />
+                        <span class="font-semibold text-xs">Extended</span>
+                        <Sparkles class="w-3 h-3 text-purple-600 fill-current" />
+                     </div>
+                     <p class="text-[10px] text-slate-500 leading-tight">Thoughtful with precise recall. Good for complex sessions.</p>
+                  </button>
+               </div>
+            </div>
+            
+            <!-- Voice Section -->
+            <div class="mb-6">
+               <h3 class="text-sm font-semibold text-slate-900 mb-3">Voice</h3>
+               <select 
+                  v-model="voiceOption"
+                  class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+               >
+                  <option value="Custom">Custom</option>
+                  <option value="Professional">Professional</option>
+                  <option value="Casual">Casual</option>
+               </select>
+            </div>
+            
+            <!-- Detail Slider -->
+            <div class="mb-6">
+               <h3 class="text-sm font-semibold text-slate-900 mb-3">Detail</h3>
+               <div class="space-y-2">
+                  <input 
+                     v-model="detailLevel"
+                     type="range" 
+                     min="0" 
+                     max="100" 
+                     class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900"
+                  />
+                  <div class="flex justify-between text-xs text-slate-500">
+                     <span>Low</span>
+                     <span>Medium</span>
+                     <span>High</span>
+                  </div>
+               </div>
+            </div>
+            
+            <!-- Toggles -->
+            <div class="space-y-3">
+               <!-- Bullet Points -->
+               <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-900">Bullet points</span>
+                  <button 
+                     @click="useBulletPoints = !useBulletPoints"
+                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                     :class="useBulletPoints ? 'bg-slate-900' : 'bg-slate-200'"
+                  >
+                     <span 
+                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        :class="useBulletPoints ? 'translate-x-6' : 'translate-x-1'"
+                     ></span>
+                  </button>
+               </div>
+               
+               <!-- Quotes -->
+               <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-900">Quotes</span>
+                  <button 
+                     @click="useQuotes = !useQuotes"
+                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                     :class="useQuotes ? 'bg-slate-900' : 'bg-slate-200'"
+                  >
+                     <span 
+                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        :class="useQuotes ? 'translate-x-6' : 'translate-x-1'"
+                     ></span>
+                  </button>
+               </div>
+               
+               <!-- Abbreviations -->
+               <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-slate-900">Abbreviations</span>
+                  <button 
+                     @click="useAbbreviations = !useAbbreviations"
+                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                     :class="useAbbreviations ? 'bg-slate-900' : 'bg-slate-200'"
+                  >
+                     <span 
+                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                        :class="useAbbreviations ? 'translate-x-6' : 'translate-x-1'"
+                     ></span>
+                  </button>
+               </div>
+            </div>
+         </PopoverContent>
+      </Popover>
 
       <!-- More Actions -->
       <DropdownMenu>
@@ -250,10 +392,10 @@ function toggleRecording() {
         </div>
 
         <!-- Editor (When Started) -->
-        <div v-else class="p-8 max-w-4xl mx-auto h-full">
+        <div v-else class="p-8 h-full">
              <textarea 
                 v-model="notes"
-                class="w-full h-full resize-none outline-none text-lg leading-relaxed text-slate-800 placeholder:text-slate-300"
+                class="w-full h-full resize-none outline-none text-base leading-relaxed text-slate-800 placeholder:text-slate-400 bg-transparent"
                 placeholder="Start typing your notes here..."
              ></textarea>
         </div>

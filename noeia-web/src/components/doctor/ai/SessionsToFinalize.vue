@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, RotateCw, Command as CommandIcon, ArrowUp, Zap, Languages } from 'lucide-vue-next'
+import { User, Trash2, Clock, ChevronDown, Mic, Calendar, LayoutList, PenLine, Ear, MoveUp as Upload, Check, RotateCw, Command as CommandIcon, ArrowUp, Zap, Languages, Plus } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
@@ -117,6 +117,21 @@ const isProTrialModalOpen = ref(false)
 const isTranscribing = ref(false)
 const sessionContextText = ref('')
 
+// AI Interaction State
+const aiQuery = ref('')
+const aiResponse = ref('')
+const isAiResponding = ref(false)
+const showAiResponse = ref(false)
+
+// Tasks Panel State
+const showTasks = ref(false)
+const tasks = ref([
+    { id: 1, text: 'Generate summary of hospital stay and tests for patient', completed: false, type: 'document' },
+    { id: 2, text: 'Schedule follow-up appointment in 2 weeks', completed: false, type: 'calendar' },
+    { id: 3, text: 'Order blood work: CBC, CMP, lipid panel', completed: false, type: 'lab' },
+    { id: 4, text: 'Send prescription for ibuprofen 400mg to pharmacy', completed: false, type: 'prescription' },
+])
+
 // Title Editing State
 const isEditingTitle = ref(false)
 const editingTitleValue = ref('')
@@ -127,6 +142,7 @@ const titleInput = ref<HTMLInputElement | null>(null)
 function startTranscription() {
     if (isTranscribing.value) return
     isTranscribing.value = true
+    showTasks.value = true // Show tasks panel
     
     // Simulate API delay
     setTimeout(() => {
@@ -145,6 +161,97 @@ function addNewTab() {
         icon: PenLine
     })
     activeMainTab.value = newId
+}
+
+function handleAiQuery() {
+    if (!aiQuery.value.trim() || isAiResponding.value) return
+    
+    isAiResponding.value = true
+    showAiResponse.value = true
+    aiResponse.value = ''
+    
+    // Mock AI response with realistic medical content
+    const mockResponse = `## Clinical Assessment Summary
+
+Based on the patient's reported symptoms and medical history, here is a comprehensive analysis:
+
+### Primary Findings
+
+The patient presents with recurrent frontal headaches characterized by throbbing pain with a severity rating of 4/10. The temporal pattern suggests a possible tension-type headache, though further evaluation is warranted.
+
+**Key Observations:**
+- Pain localization: Frontal region (bilateral)
+- Duration: Ongoing since last Tuesday (approximately 5 days)
+- Character: Throbbing, consistent with vascular component
+- Severity: Moderate (4/10 on pain scale)
+- No reported aura or visual disturbances
+
+### Differential Diagnosis
+
+1. **Tension-Type Headache (Primary consideration)**
+   - Most common headache type
+   - Consistent with bilateral frontal presentation
+   - Typically responds well to NSAIDs and stress management
+
+2. **Migraine without Aura (Secondary consideration)**
+   - Throbbing quality suggests possible vascular component
+   - Would benefit from migraine-specific prophylaxis if recurrent
+
+3. **Medication Overuse Headache (Rule out)**
+   - Important to assess current analgesic use
+   - Can perpetuate chronic headache patterns
+
+### Recommended Management Plan
+
+**Immediate interventions:**
+- Trial of NSAIDs (ibuprofen 400mg PRN, max 1200mg/day)
+- Encourage adequate hydration (2-3L daily)
+- Sleep hygiene optimization (7-9 hours nightly)
+- Stress reduction techniques
+
+**Follow-up considerations:**
+- Headache diary for 2 weeks to identify triggers
+- Re-evaluate in 14 days if symptoms persist
+- Consider neuroimaging if red flags develop
+
+### Patient Education Points
+
+It's important to discuss with the patient the benign nature of tension-type headaches while emphasizing the importance of lifestyle modifications. Reassure them that serious pathology is unlikely given the presentation, but maintain vigilance for warning signs.
+
+*Note: This assessment is based on limited information. A comprehensive physical examination and detailed history would provide additional diagnostic clarity.*`
+    
+    // Simulate typing effect
+    let index = 0
+    const typingInterval = setInterval(() => {
+        if (index < mockResponse.length) {
+            aiResponse.value += mockResponse[index]
+            index++
+        } else {
+            clearInterval(typingInterval)
+            isAiResponding.value = false
+        }
+    }, 10) // Fast typing for demo
+    
+    // Clear the input
+    aiQuery.value = ''
+}
+
+function formatMarkdown(text: string): string {
+    if (!text) return ''
+    
+    return text
+        // Headers
+        .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-4 mb-2">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-6 mb-3">$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-8 mb-4">$1</h1>')
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+        // Italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // Lists
+        .replace(/^\- (.*$)/gim, '<li class="ml-4">$1</li>')
+        // Line breaks
+        .replace(/\n/g, '<br/>')
 }
 
 function getSelectedSession() {
@@ -559,26 +666,97 @@ const groupedSessions = computed(() => {
           </div>
 
           <!-- Tab Content Area (White Card) -->
-          <div class="flex-1 min-h-0 overflow-hidden pb-4 px-4">
-             <!-- Added rounded-tl-none if first tab is active to look connected? 
-                  Actually standard browser tabs style usually has the content box fully rounded except where the tab connects.
-                  For simplicity, `border rounded-xl rounded-tl-none` (if first tab active) is complex. 
-                  Just `rounded-xl` but `rounded-tl-none` is a nice touch if consistent. 
-                  Let's stick to `rounded-xl` but maybe `rounded-tl-none` if the first one is active.
-             -->
-            <div 
-                class="w-full h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative z-0"
-                :class="{'rounded-tl-none': activeMainTab === tabs[0]?.id}"
-            >
-                 <SessionContextTab v-if="activeMainTab === 'Context'" v-model="sessionContextText" />
-                 <SessionNotesTab v-else :key="activeMainTab" />
-            </div>
+          <div class="flex-1 min-h-0 overflow-hidden pb-4 px-4 flex gap-4">
+             <div 
+                 class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative z-0"
+                 :class="[
+                    {'rounded-tl-none': activeMainTab === tabs[0]?.id},
+                    showTasks ? 'flex-1' : 'w-full h-full'
+                 ]"
+             >
+                  <SessionContextTab v-if="activeMainTab === 'Context'" v-model="sessionContextText" />
+                  <SessionNotesTab v-else :key="activeMainTab" />
+             </div>
+             
+             <!-- Tasks Panel (Side by Side) -->
+             <div v-if="showTasks" class="w-96 bg-white rounded-xl shadow-lg border border-slate-200 shrink-0 flex flex-col">
+                <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0">
+                   <div class="flex items-center gap-2">
+                      <h3 class="text-sm font-semibold text-slate-900">Tasks</h3>
+                      <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">Beta</span>
+                   </div>
+                   <button @click="showTasks = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                   </button>
+                </div>
+                
+                <div class="p-4 space-y-3 overflow-y-auto flex-1">
+                   <div v-for="task in tasks" :key="task.id" class="flex items-start gap-3 group">
+                      <input 
+                         type="checkbox" 
+                         v-model="task.completed"
+                         class="mt-1 w-4 h-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <div class="flex-1">
+                         <p class="text-sm text-slate-700" :class="{'line-through text-slate-400': task.completed}">
+                            {{ task.text }}
+                         </p>
+                         <div class="flex items-center gap-2 mt-1">
+                            <span v-if="task.type === 'document'" class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded">
+                               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                               </svg>
+                               Document
+                            </span>
+                            <span v-if="task.type === 'calendar'" class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">
+                               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                               </svg>
+                               Calendar
+                            </span>
+                            <span v-if="task.type === 'lab'" class="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-orange-700 text-xs rounded">
+                               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.758a1 1 0 01-.293.707l-4 4C.817 14.769 2.156 18 4.828 18h10.343c2.673 0 4.012-3.231 2.122-5.121l-4-4A1 1 0 0113 8.172V4.414l.707-.707A1 1 0 0013 2H7zm2 6.172V4h2v4.172a3 3 0 00.879 2.12l1.027 1.028a4 4 0 00-2.171.102l-.47.156a4 4 0 01-2.53 0l-.563-.187a1.993 1.993 0 00-.114-.035l1.063-1.063A3 3 0 009 8.172z" clip-rule="evenodd" />
+                               </svg>
+                               Lab
+                            </span>
+                            <span v-if="task.type === 'prescription'" class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded">
+                               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                               </svg>
+                               Prescription
+                            </span>
+                         </div>
+                      </div>
+                   </div>
+                   
+                   <button class="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      New task
+                   </button>
+                </div>
+             </div>
           </div>
           
           <ProTrialModal v-model:open="isProTrialModalOpen" />
-
+          
           <!-- Global Footer (Ask Noe + Warning + Tutorials) -->
           <div class="sticky bottom-0 shrink-0 pb-4 flex flex-col gap-3 px-4 z-50 bg-slate-50">
+             <!-- AI Response Section -->
+             <div v-if="showAiResponse" class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm max-h-96 overflow-y-auto">
+                <div class="prose prose-sm max-w-none">
+                   <div v-if="isAiResponding && !aiResponse" class="flex items-center gap-2 text-slate-500">
+                      <div class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span class="text-sm">Noe is thinking...</span>
+                   </div>
+                   <div v-else class="text-slate-700 whitespace-pre-wrap" v-html="formatMarkdown(aiResponse)"></div>
+                </div>
+             </div>
+             
              <!-- Ask Noe Bar -->
              <!-- Ask Noe Bar (Global) -->
              <div class="bg-white rounded-xl border border-slate-200 px-4 py-3 flex items-center gap-3 shadow-sm">
@@ -586,6 +764,8 @@ const groupedSessions = computed(() => {
                    <CommandIcon class="w-4 h-4 text-slate-700" />
                 </div>
                 <input 
+                    v-model="aiQuery"
+                    @keyup.enter="handleAiQuery"
                     type="text" 
                     placeholder="Ask Noe to do anything..." 
                     class="flex-1 bg-transparent border-none outline-none text-slate-700 placeholder:text-slate-500 text-sm font-medium"
@@ -593,7 +773,13 @@ const groupedSessions = computed(() => {
                 <Button variant="ghost" size="icon" class="text-slate-400 hover:text-slate-600">
                     <Mic class="w-4 h-4" />
                 </Button>
-                <Button size="icon" class="bg-slate-300 text-white h-8 w-8 hover:bg-slate-400 rounded-lg">
+                <Button 
+                    @click="handleAiQuery"
+                    :disabled="!aiQuery.trim() || isAiResponding"
+                    size="icon" 
+                    class="h-8 w-8 rounded-lg transition-colors"
+                    :class="aiQuery.trim() && !isAiResponding ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-slate-300 text-white cursor-not-allowed'"
+                >
                     <ArrowUp class="w-4 h-4" />
                 </Button>
              </div>
