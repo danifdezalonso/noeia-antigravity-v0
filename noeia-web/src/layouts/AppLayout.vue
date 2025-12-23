@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, provide } from 'vue'
+import { ref, onMounted, computed, provide, h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 
 import { 
   Plus,
   Search,
+  Bell,
   HelpCircle,
   Clock,
   Users,
@@ -27,13 +28,17 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import AppSidebar from '@/components/AppSidebar.vue'
 import RightSidebar from '@/components/RightSidebar.vue'
 import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/components/ui/toast/use-toast'
+import { Toaster } from '@/components/ui/toast'
 
 const route = useRoute()
 const store = useAppStore()
+const { toast } = useToast()
 
 const isFeedbackOpen = ref(false)
 const isHelpOpen = ref(false)
 const isQuickAddOpen = ref(false)
+const isNotificationsOpen = ref(false)
 const isClientModalOpen = ref(false)
 const isAddDoctorModalOpen = ref(false)
 const addDoctorCallback = ref<((id: string) => void) | undefined>(undefined)
@@ -50,8 +55,33 @@ function openAddPatientModal(callback?: (id: string) => void) {
   isAddPatientModalOpen.value = true
 }
 
+function handleSessionNotificationClick() {
+  isNotificationsOpen.value = false
+  // Navigate to AI view
+  window.location.href = '/app/doctor/ai'
+}
+
 const isFullWidth = computed(() => {
   return ['doctor-ai', 'doctor-messages', 'client-messages', 'org-messages'].includes(route.name as string)
+})
+
+// Show session reminder toast on mount
+onMounted(() => {
+  // Show toast after a short delay to ensure UI is ready
+  setTimeout(() => {
+    toast({
+      title: "🔔 Session starting soon",
+      description: "Session with John Doe starts in 10 minutes",
+      duration: 10000, // Show for 10 seconds
+      class: "border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950",
+      action: h('button', {
+        class: 'px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors',
+        onClick: () => {
+          window.location.href = '/app/doctor/ai'
+        }
+      }, 'Prepare Notes')
+    })
+  }, 1000)
 })
 
 provide('openAddDoctorModal', openAddDoctorModal)
@@ -134,6 +164,57 @@ onMounted(() => {
                 <Search class="w-5 h-5" />
               </button>
 
+              <!-- Notifications Bell -->
+              <div class="relative">
+                <button 
+                  @click="isNotificationsOpen = !isNotificationsOpen"
+                  class="relative p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                  title="Notifications"
+                >
+                  <Bell class="w-5 h-5" />
+                  <!-- Notification badge -->
+                  <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+
+                <!-- Notifications Dropdown -->
+                <div v-if="isNotificationsOpen" class="absolute top-full right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-[9999] animate-in fade-in zoom-in-95 duration-100">
+                  <div class="p-4 border-b border-border">
+                    <h3 class="font-semibold text-sm">Notifications</h3>
+                  </div>
+                  
+                  <div class="max-h-96 overflow-y-auto">
+                    <!-- Session Reminder Notification -->
+                    <button 
+                      @click="handleSessionNotificationClick"
+                      class="w-full text-left p-4 hover:bg-muted transition-colors border-b border-border"
+                    >
+                      <div class="flex gap-3">
+                        <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Clock class="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium text-foreground">Session starting soon</p>
+                          <p class="text-xs text-muted-foreground mt-1">Session with John Doe starts in 10 minutes</p>
+                          <p class="text-xs text-blue-600 mt-1">Click to prepare session notes</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                          <span class="text-xs text-muted-foreground">10m</span>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                  
+                  <div class="p-3 border-t border-border text-center">
+                    <button class="text-xs text-muted-foreground hover:text-foreground">
+                      View all notifications
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Backdrop -->
+                <div v-if="isNotificationsOpen" @click="isNotificationsOpen = false" class="fixed inset-0 z-[90] bg-transparent cursor-default"></div>
+              </div>
+
               <div class="flex items-center gap-1 sm:gap-2 border-r pr-2 sm:pr-4 mr-1 sm:mr-2">
                 <button 
                   @click="isFeedbackOpen = true"
@@ -190,5 +271,8 @@ onMounted(() => {
       <!-- Global Messaging -->
       <GlobalMessaging />
     </SidebarInset>
+    
+    <!-- Toast Notifications -->
+    <Toaster />
   </SidebarProvider>
 </template>
